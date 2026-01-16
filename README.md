@@ -2,175 +2,108 @@
 
 **Autonomous SRE & Security Orchestration Agent**
 
-An intelligent, self-healing security agent that lives in your GitHub repository, identifies vulnerabilities using enterprise-grade tools, writes verified fixes, and autonomously submits Pull Requests.
+The Sentinel is a production-grade, self-healing security agent designed to live within your GitHub ecosystem. It autonomously identifies vulnerabilities using enterprise tools, generates verified patches, and submits professional Pull Requests—all without human intervention.
 
-## 🎯 Mission
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
+[![Security: Snyk](https://img.shields.io/badge/Security-Snyk-7001FF?style=for-the-badge&logo=snyk&logoColor=white)](https://snyk.io/)
 
-Build a fully autonomous agent that:
-- 🔍 **Scans** your codebase for security vulnerabilities
-- 🧠 **Diagnoses** issues using AI-powered analysis
-- 🔧 **Patches** code automatically
-- ✅ **Verifies** fixes with tests and re-scans
-- 📝 **Proposes** changes via professional Pull Requests
+---
+
+## 🚀 Key Features
+
+- 🔍 **Deep Scanning**: Integrated with **Snyk** for dependency and container analysis, with a robust fallback to **npm audit**.
+- 🧠 **Autonomous Diagnosis**: Intelligent prioritization of Critical and High-severity vulnerabilities.
+- 🔧 **Self-Healing**: Automatically creates fix branches and patches `package.json` with secure versions.
+- ✅ **Verification Pipeline**: Every fix is validated via `npm install` and `npm test` before a PR is ever opened.
+- 🕊️ **Professional PRs**: Generates semantic Pull Requests with security labels, vulnerability details, and auto-assigned reviewers.
+- 🔒 **Safeguarded Operations**: Operates under a strict "Rules of Engagement" constitution preventing unauthorized merges or access to secrets.
+
+---
 
 ## 🏗️ Architecture
 
-### The "Brain" (Operating Logic)
-- **Spec-Driven Development (SDD)**: Reads `SPEC/` directory before executing tasks
-- **Safety Layer**: `SENTINEL_CORE.md` enforces rules (never merge to main without approval)
-- **Primary Loop**: Scan → Diagnose → Patch → Test → Propose (PR)
+The Sentinel operates as a coordinate "Council of Agents," ensuring separation of concerns and high reliability.
 
-### The "Body" (Tech Stack)
-- **Language**: TypeScript / Node.js
-- **Security Scanners**:
-  - Snyk (dependency & container scanning)
-  - CodeQL (deep logic scanning - planned)
-- **GitHub Integration**: `@octokit/rest`
-- **CI/CD**: GitHub Actions (planned)
+### The Agent Council
+1.  **🛡️ The Watchman (Scanner)**: Monitors the environment for threats. Implements retry logic and atomic reporting.
+2.  **🔧 The Engineer (Fixer)**: Analyzes threats and applies precision code patches on isolated feature branches.
+3.  **🕊️ The Diplomat (Liaison)**: Manages the downstream communication and PR lifecycle on GitHub.
 
-## 📂 Project Structure
+### Core Security Principles (`SENTINEL_CORE.md`)
+- **Safety First**: Never merge to `main` without human approval.
+- **Isolation**: All work is performed on `sentinel/fix-*` branches.
+- **Integrity**: No PR is proposed unless it passes the full test suite.
+- **Secrecy**: Total isolation from `.env` and sensitive production keys.
 
-```
-the-sentinel/
-├── SENTINEL_CORE.md       # Rules of Engagement (immutable)
-├── AI_ONBOARDING.md       # Complete guide for AI agents
-├── MULTI_AGENT_ARCHITECTURE.md  # Architecture design
-├── SPEC/                  # Task specifications
-│   ├── 001-baseline.md    # Initial security baseline
-│   └── 002-auto-fix.md    # Auto-fixing specification
-├── src/
-│   ├── index.ts           # Main orchestrator
-│   ├── core/              # Rules & spec loading
-│   │   ├── rules.ts       # Rules of Engagement loader
-│   │   └── spec.ts        # Spec-Driven Development loader
-│   ├── agents/
-│   │   ├── watchman/      # 🛡️ Scanner Agent (Snyk + npm audit)
-│   │   ├── engineer/      # 🔧 Fixer Agent (diagnosis & patching)
-│   │   └── diplomat/      # 🕊️ PR Agent (GitHub automation)
-│   └── utils/             # Helpers & mock data
-├── scan-results/          # Scan output (gitignored)
-└── dist/                  # Compiled output
-```
+---
 
-## 🚀 Getting Started
+## 🛠️ Quick Start
 
 ### Prerequisites
 - Node.js 18+
-- npm or yarn
-- Snyk CLI: `npm install -g snyk`
+- Snyk CLI installed (`npm install -g snyk`)
+- GitHub CLI authenticated (`gh auth login`)
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/DevDonzo/the-sentinel.git
 cd the-sentinel
-
-# Install dependencies
 npm install
+```
 
-# Configure environment
+### Configuration
+
+Create a `.env` file from the template:
+
+```bash
 cp .env.example .env
-# Edit .env and add your tokens:
-# - GITHUB_TOKEN
-# - SNYK_TOKEN
-
-# Authenticate with Snyk
-snyk auth
-
-# Build the project
-npm run build
-
-# Run The Sentinel
-npm start
 ```
 
-## 📊 Current Status
+| Variable | Description |
+| :--- | :--- |
+| `SNYK_TOKEN` | Your Snyk API Token ([get here](https://snyk.io/)) |
+| `GITHUB_TOKEN` | GitHub PAT with repo write access |
+| `GITHUB_ASSIGNEE` | Username to assign PRs to |
 
-### ✅ Milestone 1: Foundation & Safety Layer (Complete)
-- TypeScript/Node.js environment
-- Rules of Engagement system
-- Spec-Driven Development framework
-- Basic scanner integration
-
-### ✅ Milestone 2: "The Watchman" (Complete)
-- Full Snyk integration with JSON parsing
-- npm audit fallback scanner
-- HTML report generation
-- Vulnerability filtering (Critical/High priority)
-- Automated scan result storage
-
-### ✅ Milestone 3: "The Engineer" (Complete)
-- Diagnosis engine that reads scan results
-- Automated code patching (package.json updates)
-- Git branch management (`sentinel/fix-*` branches)
-- Fix verification with `npm test`
-- Auto-revert on test failure
-
-### ✅ Milestone 4: "The Diplomat" (Complete)
-- GitHub PR automation via Octokit
-- Auto-labeling (`security`, `severity:*`)
-- Auto-assignment of reviewers
-- Branch detection and pushing
-- Semantic PR title/body generation
-
-### 🔮 Upcoming Milestones
-- **Milestone 5**: CI/CD Integration (GitHub Actions triggers)
-- **Milestone 6**: SRE Monitoring (Optional - health checks & auto-recovery)
-
-## 🎮 Usage
-
-### Run The Full Pipeline
+### Running the Agent
 
 ```bash
-npm start
+# Build and run the full patrol cycle
+npm run build && npm start
 ```
 
-The Sentinel will:
-1. Load Rules of Engagement from `SENTINEL_CORE.md`
-2. Read active specifications from `SPEC/`
-3. **Watchman**: Execute security scans (Snyk → npm audit fallback)
-4. Filter high-priority vulnerabilities (Critical/High)
-5. **Engineer**: Create fix branch, patch `package.json`, run `npm install`, verify with `npm test`
-6. **Diplomat**: Push branch to GitHub and create a Pull Request with labels
+---
 
-### Development Mode
+## 📂 Project Structure
 
-```bash
-npm run dev
+```text
+the-sentinel/
+├── SENTINEL_CORE.md    # The security constitution
+├── SPEC/               # Task specifications for SDD
+├── src/
+│   ├── index.ts        # The Sentinel Orchestrator
+│   ├── agents/
+│   │   ├── watchman/   # Surveillance & Detection
+│   │   ├── engineer/   # Remediation & Testing
+│   │   └── diplomat/   # GitHub API & PR Handling
+│   └── core/           # System loaders & safe logic
+└── scan-results/       # Audit artifacts
 ```
 
-## 📋 Specifications
+---
 
-Specifications live in the `SPEC/` directory and define what The Sentinel should do.
+## 📜 Rules of Engagement
 
-**Current Specs:**
-- `001-baseline.md`: Run baseline Snyk scan and identify high-priority issues
+The Sentinel is governed by `SENTINEL_CORE.md`. Modifications to this file change the agent's fundamental safety parameters. It is highly recommended to review this file before deploying in a production environment.
 
-## 🔒 Safety Features
-
-The Sentinel follows strict rules defined in `SENTINEL_CORE.md`:
-
-1. **Never merge to main** without human approval
-2. **Never touch sensitive files** (.env, secrets, keys)
-3. **Always verify fixes** with tests and re-scans before proposing
-4. **Always work on feature branches** (`sentinel/fix-*`)
-
-## 🤖 For AI Agents
-
-If you're an AI working on this project, **read `AI_ONBOARDING.md` first**. It contains:
-- Complete project context
-- Detailed milestone roadmap
-- Workflow instructions
-- Critical safety rules
+---
 
 ## 📝 License
 
-ISC
+Distributed under the ISC License. See `LICENSE` for more information.
 
-## 🙏 Acknowledgments
+---
 
-Built with:
-- GitHub Student Developer Pack
-- Google AI Pro
-- Snyk Security Platform
+*Built for high-velocity teams who prioritize security without compromising on speed.* 🛡️
