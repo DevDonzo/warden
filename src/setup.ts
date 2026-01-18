@@ -30,10 +30,9 @@ export async function runSetup(): Promise<void> {
 ╚███╔███╔╝██║  ██║██║  ██║██████╔╝███████╗██║ ╚████║
  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═══╝
     `));
-    console.log(chalk.bold.blue('           WARDEN') + chalk.gray(' by DevDonzo'));
+    console.log(chalk.bold.blue('           WARDEN') + chalk.dim.gray(' by DevDonzo'));
     console.log(chalk.gray('           https://github.com/DevDonzo/warden\n'));
 
-    logger.info('Welcome to Warden setup wizard!');
     logger.info('This will help you configure your environment.\n');
 
     const envPath = path.resolve(process.cwd(), '.env');
