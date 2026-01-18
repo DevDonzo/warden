@@ -5,3 +5,20 @@ dist/
 coverage/
 scan-results/
 workspaces/
+logs/
+*.log
+
+# Vercel
+.vercel
+
+# Build artifacts
+*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db

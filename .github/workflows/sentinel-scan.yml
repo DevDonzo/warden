@@ -1,0 +1,117 @@
+name: The Sentinel - Security Scan
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install The Sentinel
+        run: |
+          npm install -g @devdonzo/the-sentinel
+          # Or use local version:
+          # npm install
+          # npm run build
+
+      - name: Configure Sentinel
+        run: |
+          cat > .sentinelrc.json << EOF
+          {
+            "scanner": {
+              "primary": "snyk",
+              "fallback": true
+            },
+            "fixes": {
+              "maxPerRun": 3,
+              "minSeverity": "high"
+            },
+            "github": {
+              "labels": ["security", "automated", "sentinel"],
+              "autoAssign": true
+            },
+            "notifications": {
+              "enabled": false
+            }
+          }
+          EOF
+
+      - name: Run Security Scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          sentinel scan --verbose
+
+      - name: Upload Scan Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: scan-results/
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const resultsPath = 'scan-results/scan-results.json';
+            
+            if (fs.existsSync(resultsPath)) {
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+              const summary = results.summary || {};
+              
+              const comment = `## 🛡️ The Sentinel Security Scan Results
+              
+              **Total Vulnerabilities:** ${summary.total || 0}
+              - 🔴 Critical: ${summary.critical || 0}
+              - 🟠 High: ${summary.high || 0}
+              - 🟡 Medium: ${summary.medium || 0}
+              - 🟢 Low: ${summary.low || 0}
+              
+              ${summary.critical > 0 || summary.high > 0 ? '⚠️ **Action Required:** High-priority vulnerabilities detected!' : '✅ No critical vulnerabilities found.'}
+              
+              <details>
+              <summary>View Details</summary>
+              
+              \`\`\`json
+              ${JSON.stringify(results, null, 2)}
+              \`\`\`
+              
+              </details>
+              
+              ---
+              *Automated by [The Sentinel](https://github.com/DevDonzo/the-sentinel)*
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }

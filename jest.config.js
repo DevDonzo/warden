@@ -1,8 +1,8 @@
 module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    roots: ['<rootDir>/src'],
-    testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+    roots: ['<rootDir>/__tests__', '<rootDir>/src'],
+    testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
     transform: {
         '^.+\\.ts$': 'ts-jest',
     },
@@ -10,7 +10,12 @@ module.exports = {
         'src/**/*.ts',
         '!src/**/*.test.ts',
         '!src/**/*.spec.ts',
+        '!src/index.ts',
     ],
     moduleFileExtensions: ['ts', 'js', 'json'],
     verbose: true,
+    testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/core/'],
+    transformIgnorePatterns: [
+        'node_modules/(?!(chalk|ora)/)'
+    ],
 };

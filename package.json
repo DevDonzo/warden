@@ -1,31 +1,77 @@
 {
-  "name": "the-sentinel",
+  "name": "@devdonzo/the-sentinel",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Autonomous SRE & Security Orchestration Agent - Automatically scan, fix, and patch security vulnerabilities in your repositories",
+  "main": "dist/index.js",
+  "bin": {
+    "sentinel": "./dist/index.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "test": "jest",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "watchman": "ts-node src/agents/watchman/index.ts",
-    "watchman:scan": "ts-node src/agents/watchman/index.ts"
+    "watchman:scan": "ts-node src/agents/watchman/index.ts",
+    "cli": "ts-node src/cli.ts",
+    "validate": "ts-node src/cli.ts validate",
+    "setup": "ts-node src/cli.ts setup",
+    "prepublishOnly": "npm run build && npm test"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "security",
+    "automation",
+    "vulnerability",
+    "vulnerability-scanner",
+    "snyk",
+    "sre",
+    "devops",
+    "github",
+    "dependency-scanning",
+    "security-automation",
+    "automated-fixes",
+    "pull-requests",
+    "ci-cd",
+    "security-tools"
+  ],
+  "author": {
+    "name": "Hamza Paracha",
+    "url": "https://github.com/DevDonzo"
+  },
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DevDonzo/the-sentinel.git"
+  },
+  "homepage": "https://github.com/DevDonzo/the-sentinel#readme",
+  "bugs": {
+    "url": "https://github.com/DevDonzo/the-sentinel/issues"
+  },
   "type": "commonjs",
   "dependencies": {
     "@octokit/rest": "^22.0.1",
-    "@types/node": "^25.0.9",
+    "chalk": "^4.1.2",
+    "commander": "^14.0.2",
     "dotenv": "^17.2.3",
+    "ora": "^5.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.9",
     "jest": "^30.2.0",
     "snyk": "^1.1302.0",
     "ts-jest": "^29.4.6"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

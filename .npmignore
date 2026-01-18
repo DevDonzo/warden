@@ -1,0 +1,42 @@
+# Exclude from npm package
+node_modules/
+.git/
+.github/
+.vscode/
+.DS_Store
+
+# Development files
+src/
+__tests__/
+*.test.ts
+*.spec.ts
+tsconfig.json
+jest.config.js
+
+# Documentation (keep README, LICENSE, CHANGELOG)
+PHASE*.md
+SPEC/
+CONTRIBUTING.md
+DEPLOYMENT.md
+QUICK_REFERENCE.md
+
+# Build artifacts
+coverage/
+*.log
+logs/
+
+# Website (separate deployment)
+website/
+
+# Environment and config examples
+.env
+.env.example
+.sentinelrc.example.json
+
+# Scripts
+quick-start.sh
+deploy-website.sh
+
+# Workspace directories
+workspaces/
+scan-results/

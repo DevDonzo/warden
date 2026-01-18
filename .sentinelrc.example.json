@@ -1,0 +1,44 @@
+{
+    "scanner": {
+        "primary": "snyk",
+        "fallback": true,
+        "timeout": 300000,
+        "retries": 3
+    },
+    "fixes": {
+        "maxPerRun": 1,
+        "minSeverity": "high",
+        "autoMerge": false,
+        "branchPrefix": "sentinel/fix"
+    },
+    "github": {
+        "assignees": [],
+        "labels": [
+            "security",
+            "automated",
+            "sentinel"
+        ],
+        "reviewers": [],
+        "autoAssign": true
+    },
+    "notifications": {
+        "enabled": false,
+        "slack": {
+            "webhook": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+            "channel": "#security-alerts"
+        },
+        "discord": {
+            "webhook": "https://discord.com/api/webhooks/YOUR/WEBHOOK/URL"
+        }
+    },
+    "logging": {
+        "level": "info",
+        "file": true,
+        "console": true
+    },
+    "exclude": {
+        "packages": [],
+        "vulnerabilities": [],
+        "severities": []
+    }
+}
