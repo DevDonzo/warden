@@ -1,132 +1,67 @@
-// Copy to clipboard functionality
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        // Visual feedback
-        const btn = event.currentTarget;
-        const originalHTML = btn.innerHTML;
+document.addEventListener('DOMContentLoaded', () => {
+    // OS Switcher Logic
+    const osBtns = document.querySelectorAll('.os-btn');
+    const codeWrappers = document.querySelectorAll('.code-wrapper');
+    const copyBtn = document.getElementById('copy-btn');
 
-        btn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8L6 11L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        `;
+    osBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const os = btn.getAttribute('data-os');
 
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-        }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-    });
-}
+            // Update buttons
+            osBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
+            // Update code blocks
+            codeWrappers.forEach(wrapper => {
+                wrapper.classList.remove('active');
+                if (wrapper.id === `${os}-code`) {
+                    wrapper.classList.add('active');
+                }
             });
-        }
+        });
     });
-});
 
-// Add intersection observer for animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe feature cards
-document.querySelectorAll('.feature').forEach((el, index) => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = `all 0.6s ease ${index * 0.1}s`;
-    observer.observe(el);
-});
-
-// Add particle effect on hover for hero section
-const hero = document.querySelector('.hero');
-let particles = [];
-
-function createParticle(x, y) {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    particle.style.cssText = `
-        position: fixed;
-        width: 4px;
-        height: 4px;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        border-radius: 50%;
-        pointer-events: none;
-        left: ${x}px;
-        top: ${y}px;
-        opacity: 0;
-        animation: particleFloat 1s ease-out forwards;
-    `;
-    document.body.appendChild(particle);
-
-    setTimeout(() => {
-        particle.remove();
-    }, 1000);
-}
-
-// Add particle animation CSS
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes particleFloat {
-        0% {
-            opacity: 1;
-            transform: translate(0, 0) scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * -100}px) scale(0);
-        }
+    // Unified Copy Logic
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const activeCode = document.querySelector('.code-wrapper.active code');
+            if (activeCode) {
+                const text = activeCode.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    // Visual feedback
+                    const originalIcon = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    `;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalIcon;
+                    }, 2000);
+                });
+            }
+        });
     }
-`;
-document.head.appendChild(style);
 
-// Throttle function for performance
-function throttle(func, delay) {
-    let lastCall = 0;
-    return function (...args) {
-        const now = new Date().getTime();
-        if (now - lastCall < delay) {
-            return;
-        }
-        lastCall = now;
-        return func(...args);
+    // Intersection Observer for fade-in effect on features
+    const observerOptions = {
+        threshold: 0.1
     };
-}
 
-// Add subtle mouse move effect
-document.addEventListener('mousemove', throttle((e) => {
-    if (Math.random() > 0.95) { // Only create particles occasionally
-        createParticle(e.clientX, e.clientY);
-    }
-}, 100));
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
 
-// Add loading state
-window.addEventListener('load', () => {
-    document.body.classList.add('loaded');
-});
-
-// Track download clicks (optional analytics)
-document.querySelectorAll('a[href*="github"]').forEach(link => {
-    link.addEventListener('click', () => {
-        console.log('GitHub link clicked:', link.href);
-        // You can add analytics tracking here
+    document.querySelectorAll('.feature-min').forEach(feature => {
+        feature.style.opacity = '0';
+        feature.style.transform = 'translateY(20px)';
+        feature.style.transition = 'all 0.6s ease-out';
+        observer.observe(feature);
     });
 });

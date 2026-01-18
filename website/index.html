@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -18,16 +19,9 @@
         <!-- Hero Section -->
         <header class="hero">
             <div class="logo">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="24" cy="24" r="20" stroke="url(#gradient)" stroke-width="2" />
-                    <path d="M24 14L24 34M14 24L34 24" stroke="url(#gradient)" stroke-width="2"
-                        stroke-linecap="round" />
-                    <defs>
-                        <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
-                            <stop offset="0%" stop-color="#3b82f6" />
-                            <stop offset="100%" stop-color="#8b5cf6" />
-                        </linearGradient>
-                    </defs>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
                 <h1>The Sentinel</h1>
             </div>
@@ -37,111 +31,72 @@
                 generates verified patches, and submits professional Pull Requests—all while you sleep.
             </p>
 
+            <!-- OS Switcher -->
+            <div class="os-switcher" id="os-switcher">
+                <button class="os-btn active" data-os="macos">macOS</button>
+                <button class="os-btn" data-os="linux">Linux</button>
+                <button class="os-btn" data-os="windows">Windows</button>
+            </div>
+
             <!-- Installation -->
             <div class="install-section">
-                <div class="code-block">
-                    <code>npm install -g @devdonzo/the-sentinel</code>
-                    <button class="copy-btn" onclick="copyToClipboard('npm install -g @devdonzo/the-sentinel')">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <rect x="3" y="3" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.5" />
-                            <path
-                                d="M5 3V2C5 1.44772 5.44772 1 6 1H14C14.5523 1 15 1.44772 15 2V10C15 10.5523 14.5523 11 14 11H13"
-                                stroke="currentColor" stroke-width="1.5" />
+                <div class="code-container">
+                    <div class="code-wrapper active" id="macos-code">
+                        <div class="code-block">
+                            <code>curl -fsSL https://sentinel.sh/install.sh | sh</code>
+                        </div>
+                    </div>
+                    <div class="code-wrapper" id="linux-code">
+                        <div class="code-block">
+                            <code>curl -fsSL https://sentinel.sh/install.sh | sh</code>
+                        </div>
+                    </div>
+                    <div class="code-wrapper" id="windows-code">
+                        <div class="code-block">
+                            <code>powershell -c "irm https://sentinel.sh/install.ps1 | iex"</code>
+                        </div>
+                    </div>
+                    <button class="copy-btn" id="copy-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
                     </button>
                 </div>
-            </div>
 
-            <!-- CTA Buttons -->
-            <div class="cta-buttons">
-                <a href="https://github.com/DevDonzo/the-sentinel" class="btn btn-primary">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M10 0C4.477 0 0 4.477 0 10c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.163 20 14.418 20 10c0-5.523-4.477-10-10-10z" />
-                    </svg>
-                    View on GitHub
-                </a>
-                <a href="#docs" class="btn btn-secondary">Documentation →</a>
-            </div>
+                <div class="download-links">
+                    <a href="#" class="download-link">Download (Apple Silicon)</a>
+                    <a href="#" class="download-link">Download (Intel)</a>
+                </div>
 
-            <!-- Stats -->
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-value">1.0.0</div>
-                    <div class="stat-label">Latest Version</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">13/13</div>
-                    <div class="stat-label">Tests Passing</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">ISC</div>
-                    <div class="stat-label">License</div>
+                <a href="https://github.com/DevDonzo/the-sentinel" class="github-cta">View on GitHub →</a>
+
+                <div class="stats-summary">
+                    <span>v1.0.0</span> • <span>13/13 tests passing</span> • <span>ISC License</span>
                 </div>
             </div>
         </header>
 
         <!-- Features -->
-        <section class="features">
-            <div class="feature">
-                <div class="feature-icon">🔍</div>
+        <section class="features-minimal">
+            <div class="feature-min">
                 <h3>Deep Scanning</h3>
-                <p>Integrated with Snyk and npm audit for comprehensive vulnerability detection</p>
+                <p>Integrated with Snyk and npm audit for comprehensive detection.</p>
             </div>
-            <div class="feature">
-                <div class="feature-icon">🤖</div>
+            <div class="feature-min">
                 <h3>Autonomous Diagnosis</h3>
-                <p>Intelligent prioritization of Critical and High-severity vulnerabilities</p>
+                <p>Intelligent prioritization of Critical and High-severity vulnerabilities.</p>
             </div>
-            <div class="feature">
-                <div class="feature-icon">🔧</div>
+            <div class="feature-min">
                 <h3>Self-Healing</h3>
-                <p>Automatically creates fix branches and patches with secure versions</p>
-            </div>
-        </section>
-
-        <!-- Quick Start -->
-        <section class="quick-start" id="docs">
-            <h2>Quick Start</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>Install</h4>
-                        <div class="code-block small">
-                            <code>npm install -g @devdonzo/the-sentinel</code>
-                        </div>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>Setup</h4>
-                        <div class="code-block small">
-                            <code>sentinel setup</code>
-                        </div>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>Scan</h4>
-                        <div class="code-block small">
-                            <code>sentinel scan</code>
-                        </div>
-                    </div>
-                </div>
+                <p>Automatically creates fix branches and patches with secure versions.</p>
             </div>
         </section>
 
         <!-- Footer -->
         <footer>
-            <div class="footer-links">
-                <a href="https://github.com/DevDonzo/the-sentinel">GitHub</a>
-                <a href="https://github.com/DevDonzo/the-sentinel#readme">Documentation</a>
-                <a href="https://github.com/DevDonzo/the-sentinel/issues">Support</a>
-            </div>
-            <p class="footer-text">Built for high-velocity teams who prioritize security 🛡️</p>
+            <p class="footer-text">Built for high-velocity teams who prioritize security.</p>
         </footer>
     </div>
 
