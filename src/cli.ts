@@ -12,8 +12,8 @@ dotenv.config();
 const program = new Command();
 
 program
-    .name('sentinel')
-    .description('The Sentinel - Autonomous SRE & Security Orchestration Agent')
+    .name('warden')
+    .description('Warden - Autonomous SRE & Security Orchestration Agent')
     .version('1.0.0');
 
 program
@@ -34,7 +34,7 @@ program
                 logger.debug('Verbose mode enabled');
             }
 
-            logger.header('🛡️  THE SENTINEL | Autonomous Security Orchestrator');
+            logger.header('🛡️  WARDEN | Autonomous Security Orchestrator');
 
             // Determine target path
             let targetPath = process.cwd();
@@ -65,8 +65,8 @@ program
             }
 
             // Import and run the main orchestrator
-            const { runSentinel } = await import('./orchestrator');
-            await runSentinel({
+            const { runWarden } = await import('./orchestrator');
+            await runWarden({
                 targetPath,
                 repository: isRemote ? repository : undefined,
                 dryRun: options.dryRun || false,
@@ -96,7 +96,7 @@ program
         validator.printValidationResults(result);
 
         if (result.valid) {
-            logger.success('Environment is ready for The Sentinel!');
+            logger.success('Environment is ready for Warden!');
             process.exit(0);
         } else {
             logger.error('Environment validation failed. Please fix the errors above.');
@@ -108,18 +108,18 @@ program
     .command('setup')
     .description('Interactive setup wizard for first-time configuration')
     .action(async () => {
-        logger.header('⚙️  The Sentinel Setup Wizard');
+        logger.header('⚙️  Warden Setup Wizard');
         const { runSetup } = await import('./setup');
         await runSetup();
     });
 
 program
     .command('init')
-    .description('Initialize The Sentinel in the current repository')
+    .description('Initialize Warden in the current repository')
     .action(async () => {
-        logger.header('🚀 Initializing The Sentinel');
-        const { initializeSentinel } = await import('./setup');
-        await initializeSentinel();
+        logger.header('🚀 Initializing Warden');
+        const { initializeWarden } = await import('./setup');
+        await initializeWarden();
     });
 
 program
@@ -134,7 +134,7 @@ program
 
         if (options.create) {
             try {
-                ConfigManager.createDefault(options.path || '.sentinelrc.json');
+                ConfigManager.createDefault(options.path || '.wardenrc.json');
                 logger.success('Configuration file created successfully!');
             } catch (error: any) {
                 logger.error('Failed to create configuration', error);
@@ -156,7 +156,7 @@ program
             config.print();
         } else {
             logger.info('Use --show, --create, or --validate');
-            logger.info('Example: sentinel config --create');
+            logger.info('Example: warden config --create');
         }
     });
 

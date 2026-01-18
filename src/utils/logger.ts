@@ -21,12 +21,12 @@ class Logger {
             ),
             transports: [
                 new winston.transports.File({
-                    filename: 'sentinel-error.log',
+                    filename: 'warden-error.log',
                     level: 'error',
                     dirname: 'logs'
                 }),
                 new winston.transports.File({
-                    filename: 'sentinel-combined.log',
+                    filename: 'warden-combined.log',
                     dirname: 'logs'
                 })
             ]

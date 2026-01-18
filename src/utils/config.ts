@@ -69,7 +69,7 @@ const DEFAULT_CONFIG: SentinelConfig = {
         maxPerRun: 1,
         minSeverity: 'high',
         autoMerge: false,
-        branchPrefix: 'sentinel/fix'
+        branchPrefix: 'warden/fix'
     },
     github: {
         assignees: [],
@@ -106,10 +106,10 @@ export class ConfigManager {
      */
     private findConfigFile(): string {
         const possiblePaths = [
-            path.join(process.cwd(), '.sentinelrc.json'),
-            path.join(process.cwd(), '.sentinelrc'),
-            path.join(process.cwd(), 'sentinel.config.json'),
-            path.join(process.env.HOME || '~', '.sentinelrc.json')
+            path.join(process.cwd(), '.wardenrc.json'),
+            path.join(process.cwd(), '.wardenrc'),
+            path.join(process.cwd(), 'warden.config.json'),
+            path.join(process.env.HOME || '~', '.wardenrc.json')
         ];
 
         for (const configPath of possiblePaths) {
@@ -199,7 +199,7 @@ export class ConfigManager {
      * Save configuration to file
      */
     save(path?: string): void {
-        const savePath = path || this.configPath || '.sentinelrc.json';
+        const savePath = path || this.configPath || '.wardenrc.json';
 
         try {
             fs.writeFileSync(savePath, JSON.stringify(this.config, null, 2));
@@ -213,7 +213,7 @@ export class ConfigManager {
     /**
      * Create a new config file with defaults
      */
-    static createDefault(targetPath: string = '.sentinelrc.json'): void {
+    static createDefault(targetPath: string = '.wardenrc.json'): void {
         const fullPath = path.resolve(process.cwd(), targetPath);
 
         if (fs.existsSync(fullPath)) {

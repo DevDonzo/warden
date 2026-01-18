@@ -21,7 +21,7 @@ function question(prompt: string): Promise<string> {
  * Interactive setup wizard
  */
 export async function runSetup(): Promise<void> {
-    logger.info('Welcome to The Sentinel setup wizard!');
+    logger.info('Welcome to Warden setup wizard!');
     logger.info('This will help you configure your environment.\n');
 
     const envPath = path.resolve(process.cwd(), '.env');
@@ -44,7 +44,7 @@ export async function runSetup(): Promise<void> {
     config.GITHUB_TOKEN = await question('Enter your GitHub Personal Access Token (required): ');
 
     if (!config.GITHUB_TOKEN) {
-        logger.error('GitHub token is required for The Sentinel to function.');
+        logger.error('GitHub token is required for Warden to function.');
         rl.close();
         return;
     }
@@ -73,7 +73,7 @@ export async function runSetup(): Promise<void> {
     validator.printValidationResults(validationResult);
 
     if (validationResult.valid) {
-        logger.success('\n🎉 Setup complete! You can now run: sentinel scan');
+        logger.success('\n🎉 Setup complete! You can now run: warden scan');
     } else {
         logger.warn('\n⚠️  Setup complete with warnings. Review the messages above.');
     }
@@ -82,12 +82,12 @@ export async function runSetup(): Promise<void> {
 }
 
 /**
- * Initialize Sentinel in a repository
+ * Initialize Warden in a repository
  */
-export async function initializeSentinel(): Promise<void> {
+export async function initializeWarden(): Promise<void> {
     const cwd = process.cwd();
 
-    logger.info('Initializing The Sentinel in current directory...');
+    logger.info('Initializing Warden in current directory...');
 
     // Create necessary directories
     const dirs = ['scan-results', 'logs', 'SPEC'];
@@ -102,10 +102,10 @@ export async function initializeSentinel(): Promise<void> {
         }
     }
 
-    // Create SENTINEL_CORE.md if it doesn't exist
-    const sentinelCorePath = path.join(cwd, 'SENTINEL_CORE.md');
-    if (!fs.existsSync(sentinelCorePath)) {
-        const coreContent = `# SENTINEL RULES OF ENGAGEMENT
+    // Create WARDEN_CORE.md if it doesn't exist
+    const wardenCorePath = path.join(cwd, 'WARDEN_CORE.md');
+    if (!fs.existsSync(wardenCorePath)) {
+        const coreContent = `# WARDEN RULES OF ENGAGEMENT
 
 ## Core Directives
 1. **Safety First**: Never merge to \`main\` or \`master\` without explicit human approval.
@@ -118,10 +118,10 @@ export async function initializeSentinel(): Promise<void> {
 
 ## Branches
 - All automated fixes must be performed on a feature/bugfix branch.
-- Branch naming convention: \`sentinel/fix-<vulnerability-id>-<short-description>\`.
+- Branch naming convention: \`warden/fix-<vulnerability-id>-<short-description>\`.
 `;
-        fs.writeFileSync(sentinelCorePath, coreContent);
-        logger.success('Created SENTINEL_CORE.md');
+        fs.writeFileSync(wardenCorePath, coreContent);
+        logger.success('Created WARDEN_CORE.md');
     }
 
     // Create a sample spec
@@ -165,7 +165,7 @@ Identify and remediate critical and high-severity vulnerabilities in dependencie
         const missing = gitignoreEntries.filter(entry => !existing.includes(entry));
 
         if (missing.length > 0) {
-            fs.appendFileSync(gitignorePath, '\n# The Sentinel\n' + missing.join('\n') + '\n');
+            fs.appendFileSync(gitignorePath, '\n# Warden\n' + missing.join('\n') + '\n');
             logger.success('Updated .gitignore');
         }
     } else {
@@ -173,11 +173,11 @@ Identify and remediate critical and high-severity vulnerabilities in dependencie
         logger.success('Created .gitignore');
     }
 
-    logger.success('\n✅ The Sentinel initialized successfully!');
+    logger.success('\n✅ Warden initialized successfully!');
     logger.info('Next steps:');
-    logger.info('  1. Run: sentinel setup (to configure environment)');
-    logger.info('  2. Run: sentinel validate (to check your setup)');
-    logger.info('  3. Run: sentinel scan (to start scanning)');
+    logger.info('  1. Run: warden setup (to configure environment)');
+    logger.info('  2. Run: warden validate (to check your setup)');
+    logger.info('  3. Run: warden scan (to start scanning)');
 
     rl.close();
 }

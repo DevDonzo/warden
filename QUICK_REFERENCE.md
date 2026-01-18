@@ -1,14 +1,14 @@
-# The Sentinel - Quick Reference
+# Warden - Quick Reference
 
 ## 🚀 Installation
 
 ```bash
 # Global (recommended)
-npm install -g the-sentinel
+npm install -g the-warden
 
 # Local
-git clone https://github.com/DevDonzo/the-sentinel.git
-cd the-sentinel
+git clone https://github.com/DevDonzo/the-warden.git
+cd the-warden
 npm install && npm run build
 ```
 
@@ -16,7 +16,7 @@ npm install && npm run build
 
 ```bash
 # Interactive setup
-sentinel setup
+warden setup
 
 # Or create .env manually
 GITHUB_TOKEN=your_token_here
@@ -28,24 +28,24 @@ GITHUB_ASSIGNEE=your_username
 
 ### Scan
 ```bash
-sentinel scan                           # Scan current directory
-sentinel scan --verbose                 # With detailed logs
-sentinel scan --dry-run                 # Preview only
-sentinel scan https://github.com/...    # Scan remote repo
-sentinel scan --severity critical       # Critical only
-sentinel scan --max-fixes 3             # Fix up to 3 issues
+warden scan                           # Scan current directory
+warden scan --verbose                 # With detailed logs
+warden scan --dry-run                 # Preview only
+warden scan https://github.com/...    # Scan remote repo
+warden scan --severity critical       # Critical only
+warden scan --max-fixes 3             # Fix up to 3 issues
 ```
 
 ### Validate
 ```bash
-sentinel validate                       # Check environment
-sentinel validate --verbose             # Detailed validation
+warden validate                       # Check environment
+warden validate --verbose             # Detailed validation
 ```
 
 ### Setup & Init
 ```bash
-sentinel setup                          # Interactive setup
-sentinel init                           # Initialize in repo
+warden setup                          # Interactive setup
+warden init                           # Initialize in repo
 ```
 
 ## 📋 Common Options
@@ -63,14 +63,14 @@ sentinel init                           # Initialize in repo
 
 ### "GITHUB_TOKEN is required"
 ```bash
-sentinel setup  # Run setup wizard
+warden setup  # Run setup wizard
 ```
 
 ### "Snyk CLI not found"
 ```bash
 npm install -g snyk
 # OR
-sentinel scan --scanner npm-audit
+warden scan --scanner npm-audit
 ```
 
 ### "Not a git repository"
@@ -81,8 +81,8 @@ git remote add origin <url>
 
 ### Debug Mode
 ```bash
-sentinel scan --verbose
-# Check logs/sentinel-combined.log
+warden scan --verbose
+# Check logs/warden-combined.log
 ```
 
 ## 📁 Project Structure
@@ -115,30 +115,30 @@ npm run dev             # Development mode
 ## 🆘 Getting Help
 
 ```bash
-sentinel --help         # General help
-sentinel scan --help    # Command help
+warden --help         # General help
+warden scan --help    # Command help
 ```
 
 ## 🎯 Quick Examples
 
 **Scan and fix critical vulnerabilities:**
 ```bash
-sentinel scan --severity critical --verbose
+warden scan --severity critical --verbose
 ```
 
 **Preview fixes without applying:**
 ```bash
-sentinel scan --dry-run --max-fixes 5
+warden scan --dry-run --max-fixes 5
 ```
 
 **Scan remote repository:**
 ```bash
-sentinel scan https://github.com/user/repo.git
+warden scan https://github.com/user/repo.git
 ```
 
 **Full validation check:**
 ```bash
-sentinel validate --verbose
+warden validate --verbose
 ```
 
 ---

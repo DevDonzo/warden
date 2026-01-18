@@ -1,10 +1,10 @@
 {
-  "name": "@devdonzo/the-sentinel",
+  "name": "@devdonzo/warden",
   "version": "1.0.0",
-  "description": "Autonomous SRE & Security Orchestration Agent - Automatically scan, fix, and patch security vulnerabilities in your repositories",
+  "description": "Autonomous SRE & Security Orchestration Agent - The Warden of your Codebase",
   "main": "dist/index.js",
   "bin": {
-    "sentinel": "dist/index.js"
+    "warden": "dist/index.js"
   },
   "files": [
     "dist/",

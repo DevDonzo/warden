@@ -1,4 +1,4 @@
-# SENTINEL RULES OF ENGAGEMENT
+# WARDEN RULES OF ENGAGEMENT
 
 ## Core Directives
 1. **Safety First**: Never merge to `main` or `master` without explicit human approval.
@@ -11,4 +11,4 @@
 
 ## Branches
 - All automated fixes must be performed on a feature/bugfix branch.
-- Branch naming convention: `sentinel/fix-<vulnerability-id>-<short-description>`.
+- Branch naming convention: `warden/fix-<vulnerability-id>-<short-description>`.

@@ -7,7 +7,7 @@ import { SnykScanner } from './agents/watchman/snyk';
 import { logger } from './utils/logger';
 import ora from 'ora';
 
-export interface SentinelOptions {
+export interface WardenOptions {
     targetPath: string;
     repository?: string;
     dryRun: boolean;
@@ -51,7 +51,7 @@ async function prepareWorkspace(repoUrl: string): Promise<string> {
  */
 async function orchestrateFix(
     scanResult: any,
-    options: SentinelOptions
+    options: WardenOptions
 ): Promise<void> {
     const snyk = new SnykScanner();
     const highPriority = snyk.filterHighPriority(scanResult);
@@ -104,12 +104,12 @@ async function orchestrateFix(
     const diplomat = new DiplomatAgent();
 
     const pkgName = topIssue.description.match(/in ([a-z0-9-]+)@/)?.[1] || 'unknown';
-    const branchName = `sentinel/fix-${pkgName}`;
+    const branchName = `warden/fix-${pkgName}`;
 
     const prUrl = await diplomat.createPullRequest({
         branch: branchName,
         title: `[SECURITY] Fix for ${topIssue.vulnerabilityId}`,
-        body: `## 🛡️ Automated Security Fix\n\n${topIssue.description}\n\n**Remediation**: ${topIssue.suggestedFix}\n\n---\n*Verified by The Sentinel Patching Engine* ✅`
+        body: `## 🛡️ Automated Security Fix\n\n${topIssue.description}\n\n**Remediation**: ${topIssue.suggestedFix}\n\n---\n*Verified by Warden Patching Engine* ✅`
     });
 
     if (prUrl) {
@@ -120,7 +120,7 @@ async function orchestrateFix(
 /**
  * Main orchestration function
  */
-export async function runSentinel(options: SentinelOptions): Promise<void> {
+export async function runWarden(options: WardenOptions): Promise<void> {
     const originalCwd = process.cwd();
 
     try {

@@ -1,6 +1,6 @@
-# Contributing to The Sentinel
+# Contributing to Warden
 
-Thank you for your interest in contributing to The Sentinel! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Warden! This document provides guidelines and instructions for contributing.
 
 ## 🎯 Code of Conduct
 
@@ -22,8 +22,8 @@ Thank you for your interest in contributing to The Sentinel! This document provi
 1. **Fork the repository**
    ```bash
    # Click the "Fork" button on GitHub, then:
-   git clone https://github.com/YOUR_USERNAME/the-sentinel.git
-   cd the-sentinel
+   git clone https://github.com/YOUR_USERNAME/the-warden.git
+   cd the-warden
    ```
 
 2. **Install dependencies**
@@ -133,7 +133,7 @@ npm test -- --coverage
 ## 🏗️ Project Structure
 
 ```
-the-sentinel/
+the-warden/
 ├── src/
 │   ├── agents/          # The three agents
 │   │   ├── watchman/   # Scanner agent
@@ -201,7 +201,7 @@ Before submitting a PR, ensure:
 
 ## 🙏 Thank You!
 
-Your contributions help make The Sentinel better for everyone. We appreciate your time and effort!
+Your contributions help make Warden better for everyone. We appreciate your time and effort!
 
 ## 📞 Questions?
 

@@ -127,7 +127,7 @@ export class EngineerAgent {
         }
 
         const [_, packageName, oldVersion, newVersion] = match;
-        const branchName = `sentinel/fix-${packageName}`;
+        const branchName = `warden/fix-${packageName}`;
 
         try {
             // 1. Checkout Branch
