@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
+import chalk from 'chalk';
 import { logger } from './utils/logger';
 import { validator } from './utils/validator';
 
@@ -21,6 +22,17 @@ function question(prompt: string): Promise<string> {
  * Interactive setup wizard
  */
 export async function runSetup(): Promise<void> {
+    console.log(chalk.blue(`
+██╗    ██╗ █████╗ ██████╗ ██████╗ ███████╗███╗   ██╗
+██║    ██║██╔══██╗██╔══██╗██╔══██╗██╔════╝████╗  ██║
+██║ █╗ ██║███████║██████╔╝██║  ██║█████╗  ██╔██╗ ██║
+██║███╗██║██╔══██║██╔══██╗██║  ██║██╔══╝  ██║╚██╗██║
+╚███╔███╔╝██║  ██║██║  ██║██████╔╝███████╗██║ ╚████║
+ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═══╝
+    `));
+    console.log(chalk.bold.blue('           WARDEN') + chalk.gray(' by DevDonzo'));
+    console.log(chalk.gray('           https://github.com/DevDonzo/warden\n'));
+
     logger.info('Welcome to Warden setup wizard!');
     logger.info('This will help you configure your environment.\n');
 

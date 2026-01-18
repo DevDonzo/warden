@@ -208,3 +208,21 @@ body {
         padding: 0 1rem;
     }
 }
+.author-credit {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.author-credit a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.author-credit a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
