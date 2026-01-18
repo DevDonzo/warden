@@ -15,87 +15,63 @@
 </head>
 
 <body>
-    <div class="container">
-        <!-- Hero Section -->
-        <header class="hero">
-            <div class="logo">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="3"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-                <h1>Warden</h1>
+    <div class="main-wrapper">
+        <nav class="nav">
+            <div class="nav-brand">Warden</div>
+            <div class="nav-links">
+                <a href="https://github.com/DevDonzo/warden" target="_blank">GitHub</a>
+                <a href="https://www.npmjs.com/package/@devdonzo/warden" target="_blank">npm</a>
             </div>
-            <p class="tagline">Autonomous Security Orchestration</p>
-            <p class="description">
-                Warden automatically scans your repositories for vulnerabilities,
-                generates verified patches, and submits professional Pull Requests—all while you sleep.
+        </nav>
+
+        <main class="hero">
+            <h1 class="title">Security orchestration<br><span class="highlight">while you sleep.</span></h1>
+
+            <p class="subtitle">
+                The Council of Agents that patrols your codebase. <br>
+                Autonomous scanning, patching, and verification.
             </p>
 
-            <!-- OS Switcher -->
-            <div class="os-switcher" id="os-switcher">
-                <button class="os-btn active" data-os="macos">macOS</button>
-                <button class="os-btn" data-os="linux">Linux</button>
-                <button class="os-btn" data-os="windows">Windows</button>
-            </div>
-
-            <!-- Installation -->
-            <div class="install-section">
-                <div class="code-container">
-                    <div class="code-wrapper active" id="macos-code">
-                        <div class="code-block">
-                            <code>npm install -g @devdonzo/warden</code>
-                        </div>
-                    </div>
-                    <div class="code-wrapper" id="linux-code">
-                        <div class="code-block">
-                            <code>npm install -g @devdonzo/warden</code>
-                        </div>
-                    </div>
-                    <div class="code-wrapper" id="windows-code">
-                        <div class="code-block">
-                            <code>npm install -g @devdonzo/warden</code>
-                        </div>
-                    </div>
-                    <button class="copy-btn" id="copy-btn">
+            <div class="install-container">
+                <div class="install-header">
+                    <span class="active-tab">Global Install</span>
+                </div>
+                <div class="code-box">
+                    <code>npm install -g @devdonzo/warden</code>
+                    <button class="copy-btn" id="copy-btn" aria-label="Copy to clipboard">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            stroke-width="2">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
                     </button>
                 </div>
-
-                <div class="download-links">
-                    <a href="https://www.npmjs.com/package/@devdonzo/warden" class="download-link">View on npm</a>
-                </div>
-
-                <a href="https://github.com/DevDonzo/warden" class="github-cta">View on GitHub →</a>
-
-                <div class="stats-summary">
-                    <span>v1.0.0</span> • <span>13/13 tests passing</span> • <span>ISC License</span>
+                <div class="compatibility-note">
+                    Compatible with macOS, Linux, and Windows
                 </div>
             </div>
-        </header>
 
-        <!-- Features -->
-        <section class="features-minimal">
-            <div class="feature-min">
-                <h3>Deep Scanning</h3>
-                <p>Integrated with Snyk and npm audit for comprehensive detection.</p>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">👁️</div>
+                    <h3>The Watchman</h3>
+                    <p>Deep dependency scanning powered by Snyk.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔧</div>
+                    <h3>The Engineer</h3>
+                    <p>Auto-generates fix branches and verifies patches.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🤝</div>
+                    <h3>The Diplomat</h3>
+                    <p>Opens detailed, semantic Pull Requests.</p>
+                </div>
             </div>
-            <div class="feature-min">
-                <h3>Autonomous Diagnosis</h3>
-                <p>Intelligent prioritization of Critical and High-severity vulnerabilities.</p>
-            </div>
-            <div class="feature-min">
-                <h3>Self-Healing</h3>
-                <p>Automatically creates fix branches and patches with secure versions.</p>
-            </div>
-        </section>
+        </main>
 
-        <!-- Footer -->
-        <footer>
-            <p class="footer-text">Built for high-velocity teams who prioritize security.</p>
+        <footer class="footer">
+            <p>© 2026 DevDonzo. Released under ISC License.</p>
         </footer>
     </div>
 

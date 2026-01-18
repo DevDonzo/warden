@@ -47,11 +47,11 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DevDonzo/the-sentinel.git"
+    "url": "https://github.com/DevDonzo/warden.git"
   },
-  "homepage": "https://github.com/DevDonzo/the-sentinel#readme",
+  "homepage": "https://github.com/DevDonzo/warden#readme",
   "bugs": {
-    "url": "https://github.com/DevDonzo/the-sentinel/issues"
+    "url": "https://github.com/DevDonzo/warden/issues"
   },
   "type": "commonjs",
   "dependencies": {
