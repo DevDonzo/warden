@@ -1,140 +1,132 @@
+:root {
+    --bg-color: #fcfcfc;
+    --text-primary: #111;
+    --text-secondary: #555;
+    --accent: #2563eb;
+    --border: #e2e8f0;
+    --code-bg: #fff;
+    --gray-soft: #f4f4f5;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-:root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
-    --accent-blue: #2563eb;
-    --accent-navy: #1e3a8a;
-    --border-color: #e2e8f0;
-    --code-bg: #f1f5f9;
-}
-
-/* Dark Mode support if preferred, but following the "simplistic" light look from the reference image */
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: var(--bg-primary);
-    background-image: radial-gradient(#e2e8f0 0.5px, transparent 0.5px);
-    background-size: 24px 24px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-color);
     color: var(--text-primary);
-    line-height: 1.6;
-    min-height: 100vh;
-    overflow-x: hidden;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
-.container {
-    max-width: 800px;
+.main-wrapper {
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 6rem 2rem;
-}
-
-/* Hero Section */
-.hero {
-    text-align: center;
-    margin-bottom: 4rem;
-}
-
-.logo {
+    padding: 2rem;
+    min-height: 100vh;
     display: flex;
+    flex-direction: column;
+}
+
+/* Nav */
+.nav {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 6rem;
 }
 
-.logo h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--accent-navy);
-    letter-spacing: -0.025em;
-}
-
-.tagline {
+.nav-brand {
+    font-weight: 700;
     font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+    letter-spacing: -0.03em;
 }
 
-.description {
-    font-size: 1.1rem;
+.nav-links a {
     color: var(--text-secondary);
-    max-width: 550px;
-    margin: 0 auto 3rem;
+    text-decoration: none;
+    margin-left: 2rem;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--text-primary);
+}
+
+/* Hero */
+.hero {
+    flex: 1;
+    text-align: center;
+}
+
+.title {
+    font-size: 4.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+.highlight {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 4rem;
+    font-weight: 400;
     line-height: 1.7;
 }
 
-/* OS Switcher Slider */
-.os-switcher {
-    background: var(--bg-secondary);
-    padding: 4px;
-    border-radius: 12px;
-    display: inline-flex;
-    gap: 4px;
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--border-color);
+/* Install Box */
+.install-container {
+    max-width: 600px;
+    margin: 0 auto 6rem;
+    text-align: left;
 }
 
-.os-btn {
-    padding: 8px 24px;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
+.install-header {
+    display: flex;
+    margin-bottom: 0.5rem;
+}
+
+.active-tab {
+    font-size: 0.85rem;
     font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.os-btn.active {
-    background: white;
     color: var(--text-primary);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-bottom: 2px solid var(--text-primary);
+    padding-bottom: 0.25rem;
 }
 
-/* Installation Section */
-.install-section {
-    margin-bottom: 4rem;
+.code-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
 }
 
-.code-container {
-    background: white;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 2.5rem;
-    position: relative;
-    max-width: 650px;
-    margin: 0 auto;
+.code-box:hover {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
-.code-wrapper {
-    display: none;
-    text-align: center;
-}
-
-.code-wrapper.active {
-    display: block;
-}
-
-.code-block {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.code-block code {
-    font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
-    font-size: 1.1rem;
+.code-box code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
     color: var(--text-primary);
-    word-break: break-all;
 }
 
 .copy-btn {
@@ -143,121 +135,76 @@ body {
     color: var(--text-secondary);
     cursor: pointer;
     padding: 8px;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    right: 1.5rem;
-    top: 50%;
-    transform: translateY(-50%);
 }
 
 .copy-btn:hover {
-    background: var(--bg-secondary);
-    color: var(--accent-blue);
+    background: var(--gray-soft);
+    color: var(--text-primary);
 }
 
-/* Download Tokens */
-.download-links {
-    margin-top: 2rem;
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    font-size: 0.95rem;
-    font-weight: 500;
+.compatibility-note {
+    margin-top: 1rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
+    text-align: center;
 }
 
-.download-link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-.download-link:hover {
-    color: var(--accent-blue);
-}
-
-/* GitHub Link */
-.github-cta {
-    margin-top: 2rem;
-    display: block;
-    color: var(--accent-blue);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 1.1rem;
-    transition: transform 0.2s;
-}
-
-.github-cta:hover {
-    transform: translateX(4px);
-}
-
-/* Stats Footer */
-.stats-summary {
-    margin-top: 3rem;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-/* Simplified Features */
-.features-minimal {
+/* Features */
+.features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 3rem;
-    margin-top: 6rem;
+    gap: 2rem;
+    margin-top: 2rem;
     text-align: left;
+    border-top: 1px solid var(--border);
+    padding-top: 4rem;
 }
 
-.feature-min h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--accent-navy);
+.feature-item h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
     margin-bottom: 0.5rem;
+    color: var(--text-primary);
 }
 
-.feature-min p {
-    font-size: 0.9rem;
+.feature-item p {
+    font-size: 0.95rem;
     color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    display: block;
 }
 
 /* Footer */
-footer {
+.footer {
     margin-top: 6rem;
-    padding-top: 3rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.footer-text {
-    color: var(--text-secondary);
+    text-align: center;
     font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding-top: 2rem;
 }
 
-/* Desktop only for side copy button positioning */
-@media (max-width: 640px) {
-    .container {
-        padding: 4rem 1.5rem;
+/* Responsive */
+@media (max-width: 768px) {
+    .title {
+        font-size: 3rem;
     }
 
-    .code-container {
-        padding: 2rem 1rem;
-    }
-
-    .copy-btn {
-        position: static;
-        transform: none;
-        margin-top: 1rem;
-    }
-
-    .code-block {
-        flex-direction: column;
-    }
-
-    .features-minimal {
+    .features-grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        text-align: center;
+    }
+
+    .install-container {
+        padding: 0 1rem;
     }
 }
