@@ -5,27 +5,25 @@
 The Sentinel is a production-grade, self-healing security agent designed to live within your GitHub ecosystem. It autonomously identifies vulnerabilities using enterprise tools, generates verified patches, and submits professional Pull Requests—all without human intervention.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![npm version](https://img.shields.io/npm/v/@devdonzo/the-sentinel?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@devdonzo/the-sentinel)
-[![npm downloads](https://img.shields.io/npm/dm/@devdonzo/the-sentinel?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@devdonzo/the-sentinel)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
 [![Security: Snyk](https://img.shields.io/badge/Security-Snyk-7001FF?style=for-the-badge&logo=snyk&logoColor=white)](https://snyk.io/)
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- **🔍 Deep Scanning**: Integrated with Snyk for dependency and container analysis, with a robust fallback to npm audit
-- **🤖 Autonomous Diagnosis**: Intelligent prioritization of Critical and High-severity vulnerabilities
-- **🔧 Self-Healing**: Automatically creates fix branches and patches package.json with secure versions
-- **✅ Verification Pipeline**: Every fix is validated via npm install and npm test before a PR is proposed
-- **📝 Professional Pull Requests**: Generates semantic Pull Requests with security labels, vulnerability details, and auto-assigned reviewers
-- **🛡️ Safeguarded Operations**: Operates under a strict "Rules of Engagement" constitution preventing unauthorized merges or access to secrets
-- **🌐 Remote Patrol**: Supports patrolling any public or private GitHub repository
-- **📊 Comprehensive Logging**: Detailed logs with color-coded output and file-based logging for debugging
+- **Deep Scanning**: Integrated with Snyk for dependency and container analysis, with a robust fallback to npm audit
+- **Autonomous Diagnosis**: Intelligent prioritization of Critical and High-severity vulnerabilities
+- **Self-Healing**: Automatically creates fix branches and patches package.json with secure versions
+- **Verification Pipeline**: Every fix is validated via npm install and npm test before a PR is proposed
+- **Professional Pull Requests**: Generates semantic Pull Requests with security labels, vulnerability details, and auto-assigned reviewers
+- **Safeguarded Operations**: Operates under a strict "Rules of Engagement" constitution preventing unauthorized merges or access to secrets
+- **Remote Patrol**: Supports patrolling any public or private GitHub repository
+- **Comprehensive Logging**: Detailed logs with color-coded output and file-based logging for debugging
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 The Sentinel operates as a coordinated "Council of Agents," ensuring separation of concerns and high reliability.
 
@@ -36,7 +34,7 @@ The Sentinel operates as a coordinated "Council of Agents," ensuring separation 
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - **Node.js 18+** (required)
@@ -156,7 +154,7 @@ sentinel scan --dry-run --verbose
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -187,7 +185,7 @@ the-sentinel/
 
 ---
 
-## 🛡️ Rules of Engagement
+## Rules of Engagement
 
 The Sentinel is governed by `SENTINEL_CORE.md`. Key safety directives:
 
@@ -244,7 +242,7 @@ Check logs in the `logs/` directory:
 
 ---
 
-## 📝 License
+## License
 
 Distributed under the ISC License. See `LICENSE` for more information.
 
