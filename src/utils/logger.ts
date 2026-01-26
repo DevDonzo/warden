@@ -12,6 +12,22 @@ class Logger {
     private winstonLogger: winston.Logger;
     private verboseMode: boolean = false;
 
+    /**
+     * Format duration in human-readable format
+     */
+    private formatDuration(ms: number): string {
+        if (ms < 1000) {
+            return `${ms}ms`;
+        }
+        const seconds = Math.floor(ms / 1000);
+        if (seconds < 60) {
+            return `${seconds}s`;
+        }
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}m ${remainingSeconds}s`;
+    }
+
     constructor() {
         this.winstonLogger = winston.createLogger({
             level: 'info',
@@ -117,6 +133,11 @@ class Logger {
 
     section(message: string) {
         console.log('\n' + chalk.blue('• ') + chalk.bold.white(message));
+    }
+
+    timing(label: string, ms: number) {
+        const formatted = this.formatDuration(ms);
+        this.info(`${label}: ${formatted}`);
     }
 }
 
