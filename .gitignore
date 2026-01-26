@@ -17,8 +17,19 @@ logs/
 # IDE
 .vscode/
 .idea/
+.sublime-workspace
+.sublime-project
 *.swp
 *.swo
+*~
 
 # OS
 Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# npm
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
