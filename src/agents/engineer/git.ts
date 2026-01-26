@@ -1,11 +1,12 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { logger } from '../../utils/logger';
 
 const execAsync = promisify(exec);
 
 export class GitManager {
     /**
-     * Ececute a shell command
+     * Execute a shell command
      */
     private async exec(command: string): Promise<string> {
         try {
@@ -40,16 +41,16 @@ export class GitManager {
         try {
             const currentBranch = await this.exec('git rev-parse --abbrev-ref HEAD');
             if (currentBranch === branchName) {
-                console.log(`[INFO] Already on branch: ${branchName}`);
+                logger.debug(`Already on branch: ${branchName}`);
                 return;
             }
 
             const exists = await this.branchExists(branchName);
             if (exists) {
-                console.log(`[INFO] Switching to existing branch: ${branchName}`);
+                logger.debug(`Switching to existing branch: ${branchName}`);
                 await this.exec(`git checkout ${branchName}`);
             } else {
-                console.log(`[INFO] Creating new branch: ${branchName}`);
+                logger.debug(`Creating new branch: ${branchName}`);
                 await this.exec(`git checkout -b ${branchName}`);
             }
         } catch (error) {
@@ -61,7 +62,7 @@ export class GitManager {
      * Stage all changes
      */
     async stageAll(): Promise<void> {
-        console.log('[INFO] Staging changes...');
+        logger.debug('Staging changes...');
         await this.exec('git add .');
     }
 
@@ -69,7 +70,7 @@ export class GitManager {
      * Commit changes
      */
     async commit(message: string): Promise<void> {
-        console.log(`[INFO] Committing changes: "${message}"`);
+        logger.debug(`Committing changes: "${message}"`);
         await this.exec(`git commit -m "${message}"`);
     }
 
