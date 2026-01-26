@@ -1,13 +1,23 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { ScanResult, Vulnerability } from './snyk';
+import { logger } from '../../utils/logger';
 
 const execAsync = promisify(exec);
+
+const SEVERITY_MAPPING: Record<string, Vulnerability['severity']> = {
+    'critical': 'critical',
+    'high': 'high',
+    'moderate': 'medium',
+    'medium': 'medium',
+    'low': 'low',
+    'info': 'low'
+};
 
 export class NpmAuditScanner {
 
     async scan(): Promise<ScanResult> {
-        console.log("🔍 Running npm audit fallback...");
+        logger.watchman('Running npm audit fallback...');
 
         try {
             // npm audit returns exit code 1 if vulnerabilities are found, so we need to handle that
@@ -28,7 +38,7 @@ export class NpmAuditScanner {
             return this.parseAuditOutput(jsonOutput);
 
         } catch (error: any) {
-            console.error("❌ npm audit failed:", error.message);
+            logger.error('npm audit failed', error);
             throw new Error(`npm audit scan failed: ${error.message}`);
         }
     }
@@ -58,10 +68,8 @@ export class NpmAuditScanner {
                 const vuln = val as any;
 
                 // Normalize severity (handle npm's 'moderate' and 'info')
-                let severityStr = (vuln.severity || 'low').toLowerCase();
-                if (severityStr === 'moderate') severityStr = 'medium';
-                if (severityStr === 'info') severityStr = 'low';
-                const severity = severityStr as Vulnerability['severity'];
+                const severityStr = (vuln.severity || 'low').toLowerCase();
+                const severity = SEVERITY_MAPPING[severityStr] || 'low';
 
                 vulnerabilities.push({
                     id: `NPM-${key}-${vuln.via?.[0]?.source || 'audit'}`, // synthesized ID
