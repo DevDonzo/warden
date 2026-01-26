@@ -7,12 +7,14 @@ import { SnykScanner } from './agents/watchman/snyk';
 import { logger } from './utils/logger';
 import ora from 'ora';
 
+const WORKSPACES_DIR = 'workspaces';
+
 export interface WardenOptions {
     targetPath: string;
     repository?: string;
     dryRun: boolean;
-    scanner: string;
-    minSeverity: string;
+    scanner: 'snyk' | 'npm-audit' | 'all';
+    minSeverity: 'low' | 'medium' | 'high' | 'critical';
     maxFixes: number;
     verbose: boolean;
 }
@@ -25,7 +27,7 @@ async function prepareWorkspace(repoUrl: string): Promise<string> {
 
     try {
         const repoName = repoUrl.split('/').pop()?.replace('.git', '') || 'target-repo';
-        const workspacePath = path.resolve(process.cwd(), 'workspaces', repoName);
+        const workspacePath = path.resolve(process.cwd(), WORKSPACES_DIR, repoName);
 
         if (fs.existsSync(workspacePath)) {
             spinner.text = `Updating ${repoName}...`;
