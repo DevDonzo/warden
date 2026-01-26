@@ -11,6 +11,17 @@ export interface ValidationResult {
 
 export class Validator {
     /**
+     * Create a new validation result
+     */
+    private createResult(valid: boolean = true): ValidationResult {
+        return {
+            valid,
+            errors: [],
+            warnings: []
+        };
+    }
+
+    /**
      * Check if a command exists in the system PATH
      */
     private commandExists(command: string): boolean {
@@ -26,11 +37,7 @@ export class Validator {
      * Validate environment variables
      */
     validateEnvironment(): ValidationResult {
-        const result: ValidationResult = {
-            valid: true,
-            errors: [],
-            warnings: []
-        };
+        const result = this.createResult();
 
         // Check for .env file
         const envPath = path.resolve(process.cwd(), '.env');
@@ -64,11 +71,7 @@ export class Validator {
      * Validate required system dependencies
      */
     validateDependencies(): ValidationResult {
-        const result: ValidationResult = {
-            valid: true,
-            errors: [],
-            warnings: []
-        };
+        const result = this.createResult();
 
         // Check for Git
         if (!this.commandExists('git')) {
@@ -106,11 +109,7 @@ export class Validator {
      * Validate Git repository
      */
     validateGitRepository(targetPath: string = process.cwd()): ValidationResult {
-        const result: ValidationResult = {
-            valid: true,
-            errors: [],
-            warnings: []
-        };
+        const result = this.createResult();
 
         const gitDir = path.join(targetPath, '.git');
 
@@ -155,11 +154,7 @@ export class Validator {
      * Validate package.json exists
      */
     validatePackageJson(targetPath: string = process.cwd()): ValidationResult {
-        const result: ValidationResult = {
-            valid: true,
-            errors: [],
-            warnings: []
-        };
+        const result = this.createResult();
 
         const packageJsonPath = path.join(targetPath, 'package.json');
 
@@ -201,11 +196,7 @@ export class Validator {
             this.validatePackageJson(targetPath)
         ];
 
-        const combined: ValidationResult = {
-            valid: true,
-            errors: [],
-            warnings: []
-        };
+        const combined = this.createResult();
 
         for (const result of results) {
             if (!result.valid) {
