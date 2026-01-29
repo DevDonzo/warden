@@ -128,7 +128,7 @@ export class EngineerAgent {
             return false;
         }
 
-        const [_, packageName, oldVersion, newVersion] = match;
+        const [, packageName, , newVersion] = match;
         const branchName = `warden/fix-${packageName}`;
 
         try {
