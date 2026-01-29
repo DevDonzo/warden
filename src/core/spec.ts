@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from '../utils/logger';
 
 export interface Spec {
     id: string;
@@ -12,13 +13,13 @@ const SPEC_DIR = path.join(WARDEN_HOME, 'SPEC');
 
 export function loadSpecs(): Spec[] {
     if (!fs.existsSync(SPEC_DIR)) {
-        console.warn(`[WARNING] SPEC directory not found at ${SPEC_DIR}. Creating it...`);
+        logger.warn(`SPEC directory not found at ${SPEC_DIR}. Creating it...`);
         fs.mkdirSync(SPEC_DIR);
         return [];
     }
 
     const files = fs.readdirSync(SPEC_DIR).filter(f => f.endsWith('.md'));
-    console.log(`[INFO] Found ${files.length} specifications.`);
+    logger.info(`Found ${files.length} specifications.`);
 
     return files.map(file => {
         const content = fs.readFileSync(path.join(SPEC_DIR, file), 'utf-8');
