@@ -5,6 +5,50 @@ All notable changes to Warden will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-29
+
+### ✨ Added
+
+- **Structured Error Types** - New error classes for better debugging:
+  - `ScanError` - For scanner-related failures
+  - `FixError` - For fix application failures
+  - `PRError` - For GitHub PR operation failures
+  - `ConfigError` - For configuration issues
+  - `ValidationError` - For input validation failures
+
+- **New CLI Commands**:
+  - `warden status` - View recent scans and environment status
+  - `warden clean` - Remove generated files (scan-results, logs)
+
+- **New CLI Flags**:
+  - `--json` - Output results as JSON for CI/CD integration
+  - `-q, --quiet` - Suppress non-essential output
+
+- **Centralized Types** - Shared type definitions in `src/types/`
+
+- **GitHub Issue Templates** - Bug report and feature request templates
+
+- **Comprehensive Test Suite** - 60 tests covering:
+  - Diplomat Agent (PR generation)
+  - Engineer Agent (fix detection)
+  - Watchman Agent (npm-audit parsing)
+  - Error types (all classes)
+
+### 🔧 Changed
+
+- **Improved Code Organization**:
+  - Extracted shared types to `types/` directory
+  - Created `errors/` directory for error classes
+  - Refactored npm-audit.ts with public helper methods
+
+### 📦 Removed
+
+- `website/` folder (should be separate repo)
+- `QUICK_REFERENCE.md` (redundant with README)
+- `vercel.json` (not needed)
+
+---
+
 ## [1.1.0] - 2026-01-29
 
 ### 🔧 Code Quality & Consistency

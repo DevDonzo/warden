@@ -142,8 +142,8 @@
 - [ ] Replace heavy deps with lighter alternatives
 
 ### 6.3 Code Organization
-- [ ] Extract shared types to `types/` directory
-- [ ] Create `errors/` directory for error classes
+- [x] Extract shared types to `types/` directory
+- [x] Create `errors/` directory for error classes
 - [ ] Standardize import ordering
 
 ---
@@ -152,7 +152,7 @@
 
 | Goal | Target | Current |
 |------|--------|---------|
-| Test Coverage | 80% | ~40% |
+| Test Coverage | 80% | ~55% |
 | Build Time | <5s | ~3s |
 | Scan Performance | <30s for 100 deps | TBD |
 | CLI Response | <100ms | ~200ms |
