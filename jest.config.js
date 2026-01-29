@@ -16,6 +16,6 @@ module.exports = {
     verbose: true,
     testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/core/'],
     transformIgnorePatterns: [
-        'node_modules/(?!(chalk|ora)/)'
+        'node_modules/(?!(chalk|ora|@octokit)/)'
     ],
 };
