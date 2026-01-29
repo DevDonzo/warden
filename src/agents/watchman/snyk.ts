@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from '../../utils/logger';
 
 const execAsync = promisify(exec);
 
@@ -50,7 +51,7 @@ export class SnykScanner {
         const { token, maxRetries = 3, retryDelayMs = 2000, timeoutMs = 300000 } = options;
 
         if (!process.env.SNYK_TOKEN && !token) {
-            console.warn("[WARNING] SNYK_TOKEN not found. Scanner may fail or require CLI login.");
+            logger.warn('SNYK_TOKEN not found. Scanner may fail or require CLI login.');
         }
 
         this.maxRetries = maxRetries;
@@ -79,8 +80,8 @@ export class SnykScanner {
 
             if (attempt < this.maxRetries && (isTimeout || isNetworkError)) {
                 const delay = this.retryDelayMs * Math.pow(2, attempt - 1);
-                console.warn(
-                    `[RETRY] ${operationName} failed (attempt ${attempt}/${this.maxRetries}). ` +
+                logger.warn(
+                    `${operationName} failed (attempt ${attempt}/${this.maxRetries}). ` +
                     `Retrying in ${delay}ms... Reason: ${error.message}`
                 );
 
@@ -93,7 +94,7 @@ export class SnykScanner {
     }
 
     async test(): Promise<ScanResult> {
-        console.log("[INFO] Running Snyk security scan...");
+        logger.watchman('Running Snyk security scan...');
         const startTime = Date.now();
         let retryCount = 0;
         const errors: string[] = [];
@@ -114,7 +115,7 @@ export class SnykScanner {
                 'Snyk CLI version check'
             );
         } catch (error: any) {
-            const errorMsg = "[ERROR] Snyk CLI not found or not responding. Please install: npm install -g snyk";
+            const errorMsg = 'Snyk CLI not found or not responding. Please install: npm install -g snyk';
             errors.push(errorMsg);
             throw new Error(errorMsg);
         }
@@ -122,7 +123,7 @@ export class SnykScanner {
         try {
             const result = await this.retryWithBackoff(
                 async () => {
-                    console.log(`[INFO] Executing Snyk scan (timeout: ${this.timeoutMs / 1000}s)...`);
+                    logger.watchman(`Executing Snyk scan (timeout: ${this.timeoutMs / 1000}s)...`);
                     try {
                         const { stdout } = await execAsync('snyk test --json', {
                             maxBuffer: 10 * 1024 * 1024,
@@ -150,7 +151,7 @@ export class SnykScanner {
                 errors: errors.length > 0 ? errors : undefined
             };
 
-            console.log(`[SUCCESS] Scan completed in ${(scanDuration / 1000).toFixed(2)}s`);
+            logger.success(`Scan completed in ${(scanDuration / 1000).toFixed(2)}s`);
             return scanResult;
 
         } catch (error: any) {
@@ -168,11 +169,11 @@ export class SnykScanner {
     }
 
     private parseSnykOutput(jsonOutput: string): ScanResult {
-        console.log("[INFO] Parsing Snyk results...");
+        logger.watchman('Parsing Snyk results...');
         let data: any;
         try {
             data = JSON.parse(jsonOutput);
-        } catch (e) {
+        } catch {
             throw new Error("Failed to parse Snyk JSON output");
         }
 
@@ -219,16 +220,16 @@ export class SnykScanner {
                 fs.renameSync(tempPath, filepath);
                 fs.writeFileSync(tempLatestPath, jsonContent, { encoding: 'utf8' });
                 fs.renameSync(tempLatestPath, latestPath);
-                console.log(`[INFO] Scan results saved to: ${filepath}`);
-                console.log(`[INFO] Latest results: ${latestPath}`);
+                logger.info(`Scan results saved to: ${filepath}`);
+                logger.debug(`Latest results: ${latestPath}`);
             } catch (writeError) {
                 [tempPath, tempLatestPath].forEach(tmpFile => {
-                    if (fs.existsSync(tmpFile)) try { fs.unlinkSync(tmpFile); } catch (e) { }
+                    if (fs.existsSync(tmpFile)) try { fs.unlinkSync(tmpFile); } catch { /* ignore */ }
                 });
                 throw writeError;
             }
         } catch (error: any) {
-            console.error(`[ERROR] Failed to save scan results: ${error.message}`);
+            logger.error(`Failed to save scan results: ${error.message}`);
             throw error;
         }
     }
@@ -245,25 +246,22 @@ export class SnykScanner {
     }
 
     printSummary(result: ScanResult): void {
-        console.log("\n" + "=".repeat(60));
-        console.log("SECURITY SCAN SUMMARY");
-        console.log("=".repeat(60));
-        console.log(`Timestamp: ${result.timestamp}`);
-        console.log(`Total Vulnerabilities: ${result.summary.total}`);
-        console.log(`  Critical: ${result.summary.critical}`);
-        console.log(`  High: ${result.summary.high}`);
-        console.log(`  Medium: ${result.summary.medium}`);
-        console.log(`  Low: ${result.summary.low}`);
+        logger.header('SECURITY SCAN SUMMARY');
+        logger.info(`Timestamp: ${result.timestamp}`);
+        logger.info(`Total Vulnerabilities: ${result.summary.total}`);
+        logger.info(`  Critical: ${result.summary.critical}`);
+        logger.info(`  High: ${result.summary.high}`);
+        logger.info(`  Medium: ${result.summary.medium}`);
+        logger.info(`  Low: ${result.summary.low}`);
 
         const highPriority = this.filterHighPriority(result);
         if (highPriority.length > 0) {
-            console.log("\n[WARNING] HIGH PRIORITY VULNERABILITIES:");
+            logger.warn('HIGH PRIORITY VULNERABILITIES:');
             highPriority.forEach((v, i) => {
-                console.log(`\n${i + 1}. [${v.severity.toUpperCase()}] ${v.title}`);
-                console.log(`   Package: ${v.packageName}@${v.version}`);
-                console.log(`   ID: ${v.id}`);
+                logger.warn(`${i + 1}. [${v.severity.toUpperCase()}] ${v.title}`);
+                logger.info(`   Package: ${v.packageName}@${v.version}`);
+                logger.info(`   ID: ${v.id}`);
             });
         }
-        console.log("=".repeat(60) + "\n");
     }
 }
