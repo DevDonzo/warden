@@ -128,7 +128,7 @@ export async function runWarden(options: WardenOptions): Promise<void> {
     try {
         // 1. Load Core Configuration
         logger.section('📋 Loading Configuration');
-        const rules = loadRules();
+        loadRules(); // Validate rules are available
         const specs = loadSpecs();
 
         if (specs.length === 0) {
