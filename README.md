@@ -153,6 +153,12 @@ warden clean --dry-run
 warden clean --all
 ```
 
+### Diagnostics
+```bash
+# Check environment and diagnose issues
+warden doctor
+```
+
 ### Configuration Management
 ```bash
 # Create default config file
