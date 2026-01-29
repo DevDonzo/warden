@@ -1,6 +1,6 @@
 {
   "name": "@devdonzo/warden",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Autonomous SRE & Security Orchestration Agent - The Warden of your Codebase",
   "main": "dist/index.js",
   "bin": {
