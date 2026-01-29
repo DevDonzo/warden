@@ -5,6 +5,51 @@ All notable changes to Warden will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-29
+
+### 🔧 Code Quality & Consistency
+
+This release focuses on production readiness with major refactoring for code consistency and improved documentation.
+
+### ✨ Added
+
+- **Comprehensive README** with:
+  - npm audit comparison table showing Warden advantages
+  - Complete CLI usage examples
+  - Environment variables reference
+  - Exit codes documentation
+  
+### 🔧 Changed
+
+- **Unified Logging System** - Replaced all `console.log/warn/error` calls with centralized logger utility across all agents:
+  - Diplomat Agent - consistent logging with agent prefixes
+  - Engineer Agent - structured logging for fix operations
+  - Watchman Agent - uniform scan progress reporting
+  - Snyk Scanner - proper error and warning handling
+  - Git Manager - debug-level logging for git operations
+  - Spec Loader - integrated with logger system
+  - HTML Report Generator - success logging for report generation
+
+### 🐛 Bug Fixes
+
+- **Fixed test failures**:
+  - Removed unused `fs` import from validator.test.ts
+  - Fixed `getConfig()` to return deep copy preventing external mutation
+- **Fixed TypeScript build errors**:
+  - Removed unused `oldVersion` variable in Engineer agent
+  - Fixed unused `rules` variable in orchestrator
+  - Removed unused `envExamplePath` in setup
+  - Fixed unused `payload` parameter in notifications
+  - Removed unused `id` parameter in progress forEach callback
+- **Refactored deprecated code**:
+  - Use `Object.hasOwn()` instead of deprecated `hasOwnProperty` in npm-audit scanner
+
+### 📦 Dependencies
+
+- Updated package-lock.json
+
+---
+
 ## [1.0.0] - 2026-01-18
 
 ### 🎉 Initial Production Release
@@ -141,5 +186,6 @@ warden init                         # Initialize in repo
 
 ---
 
+[1.1.0]: https://github.com/DevDonzo/warden/releases/tag/v1.1.0
 [1.0.0]: https://github.com/DevDonzo/warden/releases/tag/v1.0.0
 [0.1.0]: https://github.com/DevDonzo/warden/releases/tag/v0.1.0
