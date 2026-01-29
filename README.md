@@ -130,6 +130,27 @@ warden scan --verbose
 
 # Scan a remote repository
 warden scan https://github.com/owner/repo
+
+# Output as JSON for CI/CD
+warden scan --json --quiet
+```
+
+### Project Status
+```bash
+# View recent scans and environment status
+warden status
+```
+
+### Cleanup
+```bash
+# Remove generated files (scan-results, logs)
+warden clean
+
+# Preview what would be deleted
+warden clean --dry-run
+
+# Also remove configuration file
+warden clean --all
 ```
 
 ### Configuration Management
