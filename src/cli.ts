@@ -27,6 +27,8 @@ program
     .description('Scan a repository for security vulnerabilities')
     .argument('[repository]', 'GitHub repository URL or local path (default: current directory)')
     .option('-v, --verbose', 'Enable verbose logging')
+    .option('-q, --quiet', 'Suppress non-essential output')
+    .option('--json', 'Output results as JSON')
     .option('--dry-run', 'Preview changes without creating branches or PRs')
     .option('--skip-validation', 'Skip pre-flight validation checks')
     .option('--scanner <type>', 'Scanner to use: snyk, npm-audit, or all', 'snyk')
@@ -40,7 +42,14 @@ program
                 logger.debug('Verbose mode enabled');
             }
 
-            logger.header('🛡️  WARDEN | Autonomous Security Orchestrator');
+            // Set quiet mode
+            if (options.quiet) {
+                logger.setQuiet(true);
+            }
+
+            if (!options.json) {
+                logger.header('🛡️  WARDEN | Autonomous Security Orchestrator');
+            }
 
             // Determine target path
             let targetPath = process.cwd();

@@ -11,6 +11,7 @@ export enum LogLevel {
 class Logger {
     private winstonLogger: winston.Logger;
     private verboseMode: boolean = false;
+    private quietMode: boolean = false;
 
     /**
      * Format duration in human-readable format
@@ -54,6 +55,14 @@ class Logger {
         this.winstonLogger.level = verbose ? 'debug' : 'info';
     }
 
+    setQuiet(quiet: boolean) {
+        this.quietMode = quiet;
+    }
+
+    isQuiet(): boolean {
+        return this.quietMode;
+    }
+
     private formatMessage(level: string, message: string, prefix?: string): string {
         const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
         const prefixStr = prefix ? `${prefix} | ` : '';
@@ -76,6 +85,7 @@ class Logger {
 
     error(message: string, error?: Error, prefix?: string) {
         const formattedMsg = this.formatMessage('error', message, prefix);
+        // Errors are always shown, even in quiet mode
         console.error(formattedMsg);
 
         if (error) {
@@ -88,18 +98,22 @@ class Logger {
 
     warn(message: string, prefix?: string) {
         const formattedMsg = this.formatMessage('warn', message, prefix);
-        console.warn(formattedMsg);
+        if (!this.quietMode) {
+            console.warn(formattedMsg);
+        }
         this.winstonLogger.warn(message);
     }
 
     info(message: string, prefix?: string) {
         const formattedMsg = this.formatMessage('info', message, prefix);
-        console.log(formattedMsg);
+        if (!this.quietMode) {
+            console.log(formattedMsg);
+        }
         this.winstonLogger.info(message);
     }
 
     debug(message: string, prefix?: string) {
-        if (this.verboseMode) {
+        if (this.verboseMode && !this.quietMode) {
             const formattedMsg = this.formatMessage('debug', message, prefix);
             console.log(formattedMsg);
         }
@@ -108,7 +122,9 @@ class Logger {
 
     success(message: string, prefix?: string) {
         const formattedMsg = this.formatMessage('success', message, prefix);
-        console.log(formattedMsg);
+        if (!this.quietMode) {
+            console.log(formattedMsg);
+        }
         this.winstonLogger.info(`SUCCESS: ${message}`);
     }
 
@@ -127,12 +143,16 @@ class Logger {
 
     // Special formatting for headers
     header(message: string) {
-        console.log('\n' + chalk.bold.blue(message));
-        console.log(chalk.blue('─'.repeat(message.length)) + '\n');
+        if (!this.quietMode) {
+            console.log('\n' + chalk.bold.blue(message));
+            console.log(chalk.blue('─'.repeat(message.length)) + '\n');
+        }
     }
 
     section(message: string) {
-        console.log('\n' + chalk.blue('• ') + chalk.bold.white(message));
+        if (!this.quietMode) {
+            console.log('\n' + chalk.blue('• ') + chalk.bold.white(message));
+        }
     }
 
     timing(label: string, ms: number) {
