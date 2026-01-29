@@ -36,7 +36,6 @@ export async function runSetup(): Promise<void> {
     logger.info('This will help you configure your environment.\n');
 
     const envPath = path.resolve(process.cwd(), '.env');
-    const envExamplePath = path.resolve(__dirname, '../.env.example');
 
     // Check if .env already exists
     if (fs.existsSync(envPath)) {
