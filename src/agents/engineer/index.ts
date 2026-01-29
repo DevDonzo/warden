@@ -81,6 +81,24 @@ export class EngineerAgent {
     }
 
     /**
+     * Check if a fix can be attempted for a vulnerability
+     */
+    canAttemptFix(vuln: Vulnerability): boolean {
+        return vuln.fixedIn && vuln.fixedIn.length > 0;
+    }
+
+    /**
+     * Get the best fixed version for a vulnerability
+     */
+    getFixVersion(vuln: Vulnerability): string | null {
+        if (!vuln.fixedIn || vuln.fixedIn.length === 0) {
+            return null;
+        }
+        // Return the latest (last) fixed version
+        return vuln.fixedIn[vuln.fixedIn.length - 1];
+    }
+
+    /**
      * Run a shell command (for npm)
      */
     private async runCommand(command: string): Promise<void> {
