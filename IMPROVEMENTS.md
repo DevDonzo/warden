@@ -8,7 +8,7 @@
 
 | Metric | Status |
 |--------|--------|
-| **Tests Passing** | ✅ 32/32 |
+| **Tests Passing** | ✅ 51/51 |
 | **TypeScript Build** | ✅ Clean |
 | **Version** | 1.1.0 |
 | **Code Quality** | ✅ Unified logging |
@@ -24,7 +24,9 @@
 - [ ] Handle network timeouts gracefully
 
 ### 1.2 Testing Coverage
-- [ ] Add unit tests for all agents (Watchman, Engineer, Diplomat)
+- [x] Add unit tests for Diplomat agent (6 tests)
+- [x] Add unit tests for Engineer agent (5 tests)
+- [x] Add unit tests for Watchman/npm-audit (8 tests)
 - [ ] Add integration tests for scan workflow
 - [ ] Add mock tests for GitHub API interactions
 - [ ] Target: 80%+ code coverage
@@ -183,11 +185,11 @@
 
 These can be done immediately with high impact:
 
-1. **Add more tests** - Increase confidence
-2. **Remove website folder** - Cleaner repo
-3. **Add `.github/ISSUE_TEMPLATE`** - Better bug reports
-4. **Add `--json` output flag** - Machine-readable output
-5. **Add `--quiet` flag** - Suppress non-essential output
+1. ✅ **Add more tests** - Increase confidence (51 tests now)
+2. ✅ **Remove website folder** - Cleaner repo
+3. ✅ **Add `.github/ISSUE_TEMPLATE`** - Better bug reports
+4. ✅ **Add `--json` output flag** - Machine-readable output
+5. ✅ **Add `--quiet` flag** - Suppress non-essential output
 
 ---
 
