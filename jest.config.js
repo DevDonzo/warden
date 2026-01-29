@@ -12,6 +12,14 @@ module.exports = {
         '!src/**/*.spec.ts',
         '!src/index.ts',
     ],
+    coverageThreshold: {
+        global: {
+            branches: 15,
+            functions: 20,
+            lines: 15,
+            statements: 15,
+        },
+    },
     moduleFileExtensions: ['ts', 'js', 'json'],
     verbose: true,
     testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/core/'],
