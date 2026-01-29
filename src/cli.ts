@@ -229,5 +229,56 @@ program
         logger.info(`  SNYK_TOKEN: ${process.env.SNYK_TOKEN ? '✓ Set' : '✗ Not set'}`);
     });
 
+program
+    .command('clean')
+    .description('Remove generated files (scan-results, logs)')
+    .option('--all', 'Also remove .wardenrc.json')
+    .option('--dry-run', 'Show what would be deleted without deleting')
+    .action(async (options) => {
+        logger.header('🧹 Cleaning Generated Files');
+        
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const dirsToClean = ['scan-results', 'logs'];
+        const filesToClean = options.all ? ['.wardenrc.json'] : [];
+        
+        let cleaned = 0;
+        
+        for (const dir of dirsToClean) {
+            const dirPath = path.join(process.cwd(), dir);
+            if (fs.existsSync(dirPath)) {
+                if (options.dryRun) {
+                    logger.info(`Would delete: ${dir}/`);
+                } else {
+                    fs.rmSync(dirPath, { recursive: true });
+                    logger.success(`Deleted: ${dir}/`);
+                }
+                cleaned++;
+            }
+        }
+        
+        for (const file of filesToClean) {
+            const filePath = path.join(process.cwd(), file);
+            if (fs.existsSync(filePath)) {
+                if (options.dryRun) {
+                    logger.info(`Would delete: ${file}`);
+                } else {
+                    fs.rmSync(filePath);
+                    logger.success(`Deleted: ${file}`);
+                }
+                cleaned++;
+            }
+        }
+        
+        if (cleaned === 0) {
+            logger.info('Nothing to clean.');
+        } else if (options.dryRun) {
+            logger.info(`Would delete ${cleaned} item(s). Run without --dry-run to delete.`);
+        } else {
+            logger.success(`Cleaned ${cleaned} item(s).`);
+        }
+    });
+
 // Parse arguments
 program.parse();
