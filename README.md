@@ -27,7 +27,7 @@ warden scan     # find & fix vulnerabilities
 
 | | npm audit | Warden |
 |--|-----------|--------|
-| Find vulnerabilities | ✅ | ✅ Snyk |
+| Find vulnerabilities | ✅ | ✅ Snyk + npm audit fallback |
 | Auto-create fix branch | ❌ | ✅ |
 | Run tests before PR | ❌ | ✅ |
 | Open PR automatically | ❌ | ✅ |
@@ -41,7 +41,7 @@ warden scan     # find & fix vulnerabilities
 
 Warden runs as an orchestrated squad of specialized agents:
 
-**The Watchman** — Scans your deps with Snyk. Finds the threats.
+**The Watchman** — Scans your deps with Snyk (falls back to npm audit). Finds the threats.
 
 **The Engineer** — Spins up an isolated env, creates a fix branch, patches `package.json`, runs your tests. If tests fail, the fix never leaves.
 

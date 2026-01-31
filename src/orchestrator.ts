@@ -3,11 +3,53 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { loadRules } from './core/rules';
 import { loadSpecs } from './core/spec';
-import { SnykScanner } from './agents/watchman/snyk';
+import { SnykScanner, ScanResult } from './agents/watchman/snyk';
+import { NpmAuditScanner } from './agents/watchman/npm-audit';
 import { logger } from './utils/logger';
 import ora from 'ora';
 
 const WORKSPACES_DIR = 'workspaces';
+
+/**
+ * Run security scan with the specified scanner, with fallback support
+ */
+async function runSecurityScan(options: WardenOptions): Promise<ScanResult> {
+    const snykScanner = new SnykScanner();
+    const npmAuditScanner = new NpmAuditScanner();
+
+    // If user explicitly requested npm-audit, use it directly
+    if (options.scanner === 'npm-audit') {
+        logger.info('Using npm-audit scanner (user specified)');
+        return await npmAuditScanner.scan();
+    }
+
+    // If user requested snyk or all, try snyk first
+    if (options.scanner === 'snyk' || options.scanner === 'all') {
+        try {
+            return await snykScanner.test();
+        } catch (snykError: any) {
+            logger.warn(`Snyk scan failed: ${snykError.message}`);
+
+            // Fall back to npm-audit
+            logger.info('Falling back to npm-audit scanner...');
+            try {
+                const result = await npmAuditScanner.scan();
+                logger.success('npm-audit fallback scan completed');
+                return result;
+            } catch (npmError: any) {
+                logger.error(`npm-audit fallback also failed: ${npmError.message}`);
+                throw new Error('All scanners failed. Please check your environment.');
+            }
+        }
+    }
+
+    // Default: try snyk with npm-audit fallback
+    try {
+        return await snykScanner.test();
+    } catch {
+        return await npmAuditScanner.scan();
+    }
+}
 
 export interface WardenOptions {
     targetPath: string;
@@ -148,13 +190,13 @@ export async function runWarden(options: WardenOptions): Promise<void> {
         logger.section('🔍 WATCHMAN AGENT | Security Scan');
         const spinner = ora('Running security scan...').start();
 
-        const snyk = new SnykScanner();
+        const snykForUtils = new SnykScanner();
 
         try {
-            const scanResult = await snyk.test();
+            const scanResult = await runSecurityScan(options);
             spinner.succeed('Security scan completed');
 
-            snyk.printSummary(scanResult);
+            snykForUtils.printSummary(scanResult);
 
             // 4. Orchestrate Fixes
             await orchestrateFix(scanResult, options);
@@ -165,9 +207,9 @@ export async function runWarden(options: WardenOptions): Promise<void> {
             spinner.fail('Security scan failed');
             logger.error('Scanner execution failed', scanError);
 
-            // Fallback to demo mode for local repos
+            // Only fall back to demo mode for local repos when ALL scanners fail
             if (!options.repository) {
-                logger.warn('Falling back to DEMO MODE with mock data...');
+                logger.warn('All scanners failed. Falling back to DEMO MODE with mock data...');
 
                 const { generateMockScanResult } = await import('./utils/mock-data');
                 const scanResult = generateMockScanResult();
@@ -181,7 +223,7 @@ export async function runWarden(options: WardenOptions): Promise<void> {
                     JSON.stringify(scanResult, null, 2)
                 );
 
-                snyk.printSummary(scanResult);
+                snykForUtils.printSummary(scanResult);
                 await orchestrateFix(scanResult, options);
 
                 logger.header('✅ Session Completed (Demo Mode)');
