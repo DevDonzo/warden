@@ -11,16 +11,6 @@
 
 ---
 
-## Quick Start
-
-```bash
-npm install -g @devdonzo/warden
-warden setup    # interactive config wizard
-warden scan     # find & fix vulnerabilities
-```
-
----
-
 ## Why Warden?
 
 `npm audit` tells you what's broken. **Warden fixes it.**
@@ -51,35 +41,30 @@ Warden runs as an orchestrated squad of specialized agents:
 
 ## Commands
 
-```bash
-warden setup              # first-time config
-warden scan               # scan & fix current repo
-warden scan --dry-run     # preview without changes
-warden scan <github-url>  # scan any remote repo
-warden scan --severity critical --max-fixes 3
-warden status             # view recent scans
-warden doctor             # diagnose environment issues
-warden clean              # remove generated files
-```
+### Core Commands
+
+| Command | Description |
+|---|---|
+| `warden scan [repo]` | Scans a local or remote repository for vulnerabilities (SAST). |
+| `warden dast <target>` | Runs a Dynamic Application Security Test (DAST) against a configured target. |
+| `warden setup` | Runs an interactive setup wizard for first-time configuration. |
+| `warden init` | Initializes Warden in the current repository, creating a default config file. |
+
+### Utility Commands
+
+| Command | Description |
+|---|---|
+| `warden config` | Manages the `.wardenrc.json` configuration file. Use `--show`, `--create`, `--validate`. |
+| `warden validate` | Validates that the local environment and dependencies are set up correctly. |
+| `warden doctor` | Diagnoses common issues with your environment and suggests fixes. |
+| `warden status` | Shows a summary of recent scan history. |
+| `warden clean` | Removes all generated files (scan-results, logs, etc.). Use `--all` to also remove config. |
 
 ---
 
 ## DAST - Dynamic Application Security Testing
 
-Warden now supports **infrastructure scanning** with Nmap and Metasploit alongside traditional dependency scanning.
-
-### Quick Start
-
-```bash
-# 1. Configure targets in .wardenrc.json
-warden config --create
-
-# 2. Add DAST configuration (see docs)
-# Edit .wardenrc.json and add "dast" section
-
-# 3. Run DAST scan
-warden dast https://staging.myapp.com
-```
+Warden now supports **infrastructure scanning** with Nmap and Metasploit alongside traditional dependency scanning. See the [DAST Guide](./docs/DAST-GUIDE.md) for complete documentation.
 
 ### SAST vs DAST
 
@@ -88,14 +73,17 @@ warden dast https://staging.myapp.com
 | **SAST** | Dependencies | Snyk, npm audit | Auto-fix PRs |
 | **DAST** | Infrastructure | Nmap, Metasploit | Advisory PRs |
 
-### Features
+### ⚠️ Legal Notice
 
-- **Nmap**: Network discovery, port scanning, service detection
-- **Metasploit**: Vulnerability validation (optional)
-- **Safety-First**: Multiple authorization checks
-- **Advisory PRs**: Manual remediation guidance (no auto-fix for infrastructure)
+**Only scan systems you own or have written authorization to test.** Unauthorized scanning may violate laws including the Computer Fraud and Abuse Act (USA).
 
-### Configuration Example
+---
+
+## Configuration
+
+Warden is configured using a `.wardenrc.json` file in your project root. You can create one automatically by running `warden config --create`.
+
+### Example `.wardenrc.json`
 
 ```json
 {
@@ -126,47 +114,14 @@ warden dast https://staging.myapp.com
 }
 ```
 
-### DAST Commands
-
-```bash
-warden dast <target>           # Scan authorized target
-warden dast <target> --verbose # Detailed output
-warden dast <target> --dry-run # Preview only
-warden dast <target> --nmap-only  # Nmap only
-```
-
-### ⚠️ Legal Notice
-
-**Only scan systems you own or have written authorization to test.** Unauthorized scanning may violate laws including the Computer Fraud and Abuse Act (USA).
-
-See [DAST Guide](./docs/DAST-GUIDE.md) for complete documentation.
-
 ---
 
-## Config
-
-Drop a `.wardenrc.json` in your project root:
-
-```json
-{
-  "scanner": { "primary": "snyk", "fallback": true },
-  "fixes": { "maxPerRun": 5, "minSeverity": "high", "branchPrefix": "warden/fix" },
-  "github": { "labels": ["security", "automated"], "autoAssign": true }
-}
-```
-
-Or run `warden config --create` to generate one.
-
----
-
-## Environment
+## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GITHUB_TOKEN` | Yes | For PR creation |
-| `SNYK_TOKEN` | No | Enhanced scanning |
-
-Repo owner/name auto-detected from git remote.
+| `GITHUB_TOKEN` | Yes | For PR creation. Can be classic or fine-grained. |
+| `SNYK_TOKEN` | No | For enhanced SAST scanning with Snyk. |
 
 ---
 
@@ -175,12 +130,6 @@ Repo owner/name auto-detected from git remote.
 1. **No force pushes.** Ever.
 2. **No PR without passing tests.**
 3. **Human merges.** Warden proposes, you approve.
-
----
-
-## Exit Codes
-
-`0` — Clean. `1` — Vulns found. `2` — Scan failed.
 
 ---
 
