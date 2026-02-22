@@ -4,6 +4,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { GitManager } from './git';
 import { logger } from '../../utils/logger';
+import { validator } from '../../utils/validator';
 import { Vulnerability as DastVulnerability, ScanMode } from '../../types';
 
 const execAsync = promisify(exec);
@@ -283,7 +284,18 @@ export class EngineerAgent {
         }
 
         const [, packageName, , newVersion] = match;
-        const branchName = `warden/fix-${packageName}`;
+        let branchName = `warden/fix-${packageName}`;
+        
+        // Validate and sanitize branch name
+        const branchValidation = validator.validateBranchName(branchName);
+        if (!branchValidation.valid) {
+            logger.warn('Branch name validation failed, sanitizing...');
+            branchName = validator.sanitizeBranchName(packageName, 'warden/fix');
+            logger.info(`Sanitized branch name: ${branchName}`);
+        } else if (branchValidation.warnings.length > 0) {
+            // Log warnings but continue
+            branchValidation.warnings.forEach(warn => logger.warn(warn));
+        }
 
         try {
             // 1. Checkout Branch

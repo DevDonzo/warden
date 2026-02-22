@@ -22,6 +22,246 @@ export class Validator {
     }
 
     /**
+     * Sanitize repository URL
+     * Ensures the repo string is clean, valid, and follows expected formats
+     */
+    sanitizeRepositoryUrl(repo: string): string | null {
+        if (!repo || typeof repo !== 'string') {
+            return null;
+        }
+
+        // Trim whitespace
+        const trimmed = repo.trim();
+
+        // Patterns to match (in order of priority):
+        // - https://github.com/owner/repo
+        // - https://github.com/owner/repo.git
+        // - git@github.com:owner/repo.git
+        // - github.com/owner/repo
+        // - owner/repo (shorthand)
+        // - local paths
+
+        try {
+            // Handle git@ SSH format
+            if (trimmed.startsWith('git@')) {
+                const sshMatch = trimmed.match(/git@github\.com:([^/]+)\/([^/.]+)(\.git)?$/);
+                if (sshMatch) {
+                    const [, owner, repo] = sshMatch;
+                    return `https://github.com/${owner}/${repo}`;
+                }
+                return null;
+            }
+
+            // Handle HTTPS URLs
+            if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                const url = new URL(trimmed);
+                
+                // Only support GitHub for now
+                if (!url.hostname.includes('github.com')) {
+                    return null;
+                }
+
+                // Extract owner/repo from pathname
+                const pathParts = url.pathname.split('/').filter(p => p.length > 0);
+                if (pathParts.length >= 2) {
+                    const owner = pathParts[0];
+                    const repo = pathParts[1].replace(/\.git$/, '');
+                    return `https://github.com/${owner}/${repo}`;
+                }
+                return null;
+            }
+
+            // Handle github.com/owner/repo format
+            if (trimmed.startsWith('github.com/')) {
+                const parts = trimmed.replace('github.com/', '').split('/');
+                if (parts.length >= 2) {
+                    const owner = parts[0];
+                    const repo = parts[1].replace(/\.git$/, '');
+                    return `https://github.com/${owner}/${repo}`;
+                }
+                return null;
+            }
+
+            // Handle owner/repo shorthand - must match GitHub repo pattern (no spaces or special chars)
+            const shorthandMatch = trimmed.match(/^([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_.-]+)$/);
+            if (shorthandMatch) {
+                const [, owner, repo] = shorthandMatch;
+                return `https://github.com/${owner}/${repo.replace(/\.git$/, '')}`;
+            }
+
+            // If it's a local file path, return as-is
+            // Check for path-like characteristics: starts with ./ or / or ~
+            if (trimmed.startsWith('./') || trimmed.startsWith('../') || trimmed.startsWith('/') || trimmed.startsWith('~')) {
+                return trimmed;
+            }
+
+            // If none of the patterns match, return null
+            return null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    /**
+     * Validate repository URL
+     * Returns a ValidationResult with detailed errors/warnings
+     */
+    validateRepositoryUrl(repo: string): ValidationResult {
+        const result = this.createResult();
+
+        if (!repo || typeof repo !== 'string') {
+            result.errors.push('Repository URL cannot be empty');
+            result.valid = false;
+            return result;
+        }
+
+        // Check for spaces in original input
+        if (repo.includes(' ')) {
+            result.errors.push('Repository URL cannot contain spaces');
+            result.valid = false;
+            return result;
+        }
+
+        const sanitized = this.sanitizeRepositoryUrl(repo);
+        if (!sanitized) {
+            result.errors.push(`Invalid repository format: ${repo}`);
+            result.errors.push('Expected formats: https://github.com/owner/repo, git@github.com:owner/repo.git, or owner/repo');
+            result.valid = false;
+            return result;
+        }
+
+        if (sanitized.length > 500) {
+            result.errors.push('Repository URL is too long');
+            result.valid = false;
+        }
+
+        return result;
+    }
+
+    /**
+     * Validate branch name
+     * Ensures fix branches follow consistent and safe naming conventions
+     */
+    validateBranchName(branchName: string): ValidationResult {
+        const result = this.createResult();
+
+        if (!branchName || typeof branchName !== 'string') {
+            result.errors.push('Branch name cannot be empty');
+            result.valid = false;
+            return result;
+        }
+
+        const trimmed = branchName.trim();
+
+        // Length check
+        if (trimmed.length === 0) {
+            result.errors.push('Branch name cannot be empty');
+            result.valid = false;
+            return result;
+        }
+
+        if (trimmed.length > 255) {
+            result.errors.push('Branch name is too long (max 255 characters)');
+            result.valid = false;
+        }
+
+        // Git branch name rules
+        // Cannot start or end with /
+        if (trimmed.startsWith('/') || trimmed.endsWith('/')) {
+            result.errors.push('Branch name cannot start or end with /');
+            result.valid = false;
+        }
+
+        // Cannot contain ..
+        if (trimmed.includes('..')) {
+            result.errors.push('Branch name cannot contain ".."');
+            result.valid = false;
+        }
+
+        // Cannot contain control characters or spaces
+        if (/[\x00-\x1f\x7f ]/.test(trimmed)) {
+            result.errors.push('Branch name cannot contain control characters or spaces');
+            result.valid = false;
+        }
+
+        // Cannot contain special characters that git doesn't allow
+        if (/[~^:?*\[\\]/.test(trimmed)) {
+            result.errors.push('Branch name cannot contain ~, ^, :, ?, *, [, \\, or ]');
+            result.valid = false;
+        }
+
+        // Cannot be just @ or end with .lock
+        if (trimmed === '@' || trimmed.endsWith('.lock')) {
+            result.errors.push('Invalid branch name format');
+            result.valid = false;
+        }
+
+        // Warden-specific validation for fix branches
+        if (trimmed.startsWith('warden/')) {
+            // Check format: warden/fix-{package-name} or warden/{type}-{description}
+            const wardenPattern = /^warden\/(fix|feat|chore|docs|refactor|test)-[a-zA-Z0-9._-]+$/;
+            if (!wardenPattern.test(trimmed)) {
+                result.warnings.push('Warden branch should follow format: warden/{type}-{description}');
+                result.warnings.push('Valid types: fix, feat, chore, docs, refactor, test');
+            }
+
+            // Check for double slashes
+            if (trimmed.includes('//')) {
+                result.errors.push('Branch name cannot contain consecutive slashes');
+                result.valid = false;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Sanitize branch name
+     * Converts an arbitrary string into a safe git branch name
+     */
+    sanitizeBranchName(branchName: string, prefix: string = 'warden/fix'): string {
+        if (!branchName || typeof branchName !== 'string') {
+            return `${prefix}-unknown`;
+        }
+
+        // Remove control characters and spaces
+        let sanitized = branchName.trim()
+            .replace(/[\x00-\x1f\x7f ]/g, '-')
+            .replace(/[~^:?*\[\\]/g, '-')
+            .replace(/\.lock$/g, '')
+            .replace(/^@/, 'at-')
+            .replace(/^\/+|\/+$/g, '');
+
+        // Handle slashes - if it already has warden/, preserve structure
+        // Otherwise replace slashes with hyphens
+        if (!sanitized.startsWith('warden/')) {
+            sanitized = sanitized.replace(/\//g, '-');
+        }
+
+        // Clean up other patterns
+        sanitized = sanitized
+            .replace(/\.\.+/g, '.')
+            .replace(/-+/g, '-')
+            .toLowerCase();
+
+        // Ensure it doesn't exceed length
+        const maxDescLength = 200;
+        if (sanitized.length > maxDescLength) {
+            sanitized = sanitized.substring(0, maxDescLength);
+        }
+
+        // Remove trailing dots or hyphens
+        sanitized = sanitized.replace(/[.-]+$/, '');
+
+        // If it starts with warden/, keep it; otherwise add prefix
+        if (!sanitized.startsWith('warden/')) {
+            sanitized = `${prefix}-${sanitized}`;
+        }
+
+        return sanitized;
+    }
+
+    /**
      * Check if a command exists in the system PATH
      */
     private commandExists(command: string): boolean {
