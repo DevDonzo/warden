@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * The Watchman - Security Scanner Agent
- * 
+ *
  * This is the entry point for The Watchman agent.
  * It orchestrates the scanning process, handling fallbacks (Snyk -> npm audit)
  * and generating reports (JSON + HTML).
@@ -85,7 +85,6 @@ async function main() {
 
             // Save JSON explicitly for npm audit (as it's just a simple class rn)
             saveResults(results);
-
         } catch (auditError: any) {
             logger.error('All scanners failed!');
             logger.error(`Snyk: ${snykError.message}`);
@@ -169,12 +168,14 @@ async function runDastScan(targetUrl: string | null): Promise<void> {
         if (!target) {
             logger.error(`Target ${targetUrl} not found in configuration.`);
             logger.info('Available targets:');
-            dastConfig.targets.forEach(t => logger.info(`  - ${t.url} (${t.authorized ? 'authorized' : 'NOT AUTHORIZED'})`));
+            dastConfig.targets.forEach((t) =>
+                logger.info(`  - ${t.url} (${t.authorized ? 'authorized' : 'NOT AUTHORIZED'})`)
+            );
             process.exit(1);
         }
     } else {
         // Use first authorized target
-        target = dastConfig.targets.find(t => t.authorized) || null;
+        target = dastConfig.targets.find((t) => t.authorized) || null;
         if (!target) {
             logger.error('No authorized targets found in configuration.');
             process.exit(1);
@@ -186,7 +187,7 @@ async function runDastScan(targetUrl: string | null): Promise<void> {
     const validation = configManager.validateDastConfig();
     if (!validation.valid) {
         logger.error('DAST configuration validation failed:');
-        validation.errors.forEach(err => logger.error(`  - ${err}`));
+        validation.errors.forEach((err) => logger.error(`  - ${err}`));
         process.exit(1);
     }
 
@@ -223,7 +224,9 @@ async function runDastScan(targetUrl: string | null): Promise<void> {
             );
             const nmapVulns = nmapResults?.vulnerabilities as DastTarget[] | undefined;
             metasploitResults = await msfScanner.scan(nmapVulns as any);
-            logger.success(`Metasploit scan completed: ${metasploitResults.vulnerabilities.length} findings`);
+            logger.success(
+                `Metasploit scan completed: ${metasploitResults.vulnerabilities.length} findings`
+            );
         } catch (error: any) {
             logger.error(`Metasploit scan failed: ${error.message}`);
         }
@@ -283,15 +286,15 @@ function mergeDastResults(
 
     const vulnerabilities = [
         ...(nmapResults?.vulnerabilities || []),
-        ...(metasploitResults?.vulnerabilities || [])
+        ...(metasploitResults?.vulnerabilities || []),
     ];
 
     const summary = {
         total: vulnerabilities.length,
-        critical: vulnerabilities.filter(v => v.severity === 'critical').length,
-        high: vulnerabilities.filter(v => v.severity === 'high').length,
-        medium: vulnerabilities.filter(v => v.severity === 'medium').length,
-        low: vulnerabilities.filter(v => v.severity === 'low').length
+        critical: vulnerabilities.filter((v) => v.severity === 'critical').length,
+        high: vulnerabilities.filter((v) => v.severity === 'high').length,
+        medium: vulnerabilities.filter((v) => v.severity === 'medium').length,
+        low: vulnerabilities.filter((v) => v.severity === 'low').length,
     };
 
     const result: any = {
@@ -307,8 +310,8 @@ function mergeDastResults(
             nmapEnabled: !!nmapResults,
             metasploitEnabled: !!metasploitResults,
             nmapFindings: nmapResults?.vulnerabilities.length || 0,
-            metasploitFindings: metasploitResults?.vulnerabilities.length || 0
-        }
+            metasploitFindings: metasploitResults?.vulnerabilities.length || 0,
+        },
     };
     return result;
 }

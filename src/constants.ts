@@ -25,10 +25,10 @@ export const DEFAULT_RETRY_DELAY_MS = 1000; // 1 second
 export type SeverityLevel = 'critical' | 'high' | 'medium' | 'low';
 export const SEVERITY_LEVELS: readonly SeverityLevel[] = ['critical', 'high', 'medium', 'low'];
 export const SEVERITY_PRIORITY: Record<SeverityLevel, number> = {
-    'critical': 4,
-    'high': 3,
-    'medium': 2,
-    'low': 1
+    critical: 4,
+    high: 3,
+    medium: 2,
+    low: 1,
 };
 
 // Scanner types
@@ -49,5 +49,6 @@ export const MESSAGES = {
     SETUP_COMPLETE: 'Setup complete! You can now run: warden scan',
     WORKSPACE_READY: (repoName: string) => `Workspace ready: ${repoName}`,
     VALIDATION_PASSED: 'All validations passed!',
-    VALIDATION_FAILED: 'Validation failed. Fix the errors above or use --skip-validation to proceed anyway.'
+    VALIDATION_FAILED:
+        'Validation failed. Fix the errors above or use --skip-validation to proceed anyway.',
 } as const;

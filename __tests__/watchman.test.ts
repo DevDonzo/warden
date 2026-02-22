@@ -47,14 +47,14 @@ describe('NpmAuditScanner', () => {
         it('should format npm audit output into vulnerability objects', () => {
             const npmOutput = {
                 vulnerabilities: {
-                    'lodash': {
+                    lodash: {
                         name: 'lodash',
                         severity: 'high',
                         via: [{ title: 'Prototype Pollution', url: 'https://example.com' }],
                         range: '< 4.17.21',
-                        fixAvailable: { version: '4.17.21' }
-                    }
-                }
+                        fixAvailable: { version: '4.17.21' },
+                    },
+                },
             };
 
             const result = scanner.formatVulnerabilities(npmOutput);

@@ -37,12 +37,15 @@ export class MetasploitScanner {
     async checkInstallation(): Promise<{ installed: boolean; version?: string }> {
         try {
             const { stdout } = await execAsync('msfconsole --version');
-            const versionMatch = stdout.match(/metasploit v([0-9.]+)/i) || stdout.match(/([0-9.]+)/);
+            const versionMatch =
+                stdout.match(/metasploit v([0-9.]+)/i) || stdout.match(/([0-9.]+)/);
             const version = versionMatch ? versionMatch[1] : 'unknown';
             logger.info(`Metasploit Framework detected: version ${version}`);
             return { installed: true, version };
         } catch (error) {
-            logger.error('Metasploit Framework not found. Please install msfconsole to use this feature.');
+            logger.error(
+                'Metasploit Framework not found. Please install msfconsole to use this feature.'
+            );
             return { installed: false };
         }
     }
@@ -94,7 +97,7 @@ export class MetasploitScanner {
             `setg RHOSTS ${targetHost}`,
             `setg RPORT ${targetPort}`,
             'setg VERBOSE true',
-            ''
+            '',
         ];
 
         // Select modules based on mode and nmap results
@@ -177,7 +180,9 @@ export class MetasploitScanner {
 
         // Check authorization
         if (!this.target.authorized) {
-            throw new Error(`Target ${this.target.url} is not authorized for scanning. Set "authorized: true" in configuration.`);
+            throw new Error(
+                `Target ${this.target.url} is not authorized for scanning. Set "authorized: true" in configuration.`
+            );
         }
 
         // Enforce safety checks
@@ -188,7 +193,9 @@ export class MetasploitScanner {
         // Check Metasploit installation
         const { installed, version } = await this.checkInstallation();
         if (!installed) {
-            throw new Error('Metasploit Framework is not installed. Please install msfconsole to continue.');
+            throw new Error(
+                'Metasploit Framework is not installed. Please install msfconsole to continue.'
+            );
         }
 
         // Display safety warning
@@ -218,7 +225,7 @@ export class MetasploitScanner {
 
             await execAsync(command, {
                 timeout,
-                maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+                maxBuffer: 10 * 1024 * 1024, // 10MB buffer
             });
 
             // Parse output
@@ -240,17 +247,18 @@ export class MetasploitScanner {
                     duration,
                     msfVersion: version,
                     outputFile: outputPath,
-                    resourceScript: resourceScriptPath
-                }
+                    resourceScript: resourceScriptPath,
+                },
             };
 
-            logger.info(`Metasploit scan completed. Found ${vulnerabilities.length} findings in ${duration}ms`);
+            logger.info(
+                `Metasploit scan completed. Found ${vulnerabilities.length} findings in ${duration}ms`
+            );
 
             // Cleanup resource script if needed
             // await fs.unlink(resourceScriptPath);
 
             return result;
-
         } catch (error) {
             logger.error(`Metasploit scan failed: ${error}`);
             throw error;
@@ -284,10 +292,11 @@ export class MetasploitScanner {
             }
 
             // Detect vulnerabilities
-            if (line.toLowerCase().includes('vulnerable') ||
+            if (
+                line.toLowerCase().includes('vulnerable') ||
                 line.toLowerCase().includes('exploit') ||
-                line.toLowerCase().includes('success')) {
-
+                line.toLowerCase().includes('success')
+            ) {
                 const url = new URL(this.target.url);
                 const targetHost = url.hostname;
 
@@ -303,7 +312,7 @@ export class MetasploitScanner {
                     service: this.extractServiceFromModule(currentModule),
                     exploitAvailable: true,
                     exploitModule: currentModule,
-                    findings: findings.get(currentModule) || []
+                    findings: findings.get(currentModule) || [],
                 });
             }
         }
@@ -342,10 +351,10 @@ export class MetasploitScanner {
     private calculateSummary(vulnerabilities: Vulnerability[]) {
         return {
             total: vulnerabilities.length,
-            critical: vulnerabilities.filter(v => v.severity === 'critical').length,
-            high: vulnerabilities.filter(v => v.severity === 'high').length,
-            medium: vulnerabilities.filter(v => v.severity === 'medium').length,
-            low: vulnerabilities.filter(v => v.severity === 'low').length
+            critical: vulnerabilities.filter((v) => v.severity === 'critical').length,
+            high: vulnerabilities.filter((v) => v.severity === 'high').length,
+            medium: vulnerabilities.filter((v) => v.severity === 'medium').length,
+            low: vulnerabilities.filter((v) => v.severity === 'low').length,
         };
     }
 }

@@ -18,15 +18,15 @@ export function loadSpecs(): Spec[] {
         return [];
     }
 
-    const files = fs.readdirSync(SPEC_DIR).filter(f => f.endsWith('.md'));
+    const files = fs.readdirSync(SPEC_DIR).filter((f) => f.endsWith('.md'));
     logger.info(`Found ${files.length} specifications.`);
 
-    return files.map(file => {
+    return files.map((file) => {
         const content = fs.readFileSync(path.join(SPEC_DIR, file), 'utf-8');
         return {
             id: file.replace('.md', ''),
             filename: file,
-            content
+            content,
         };
     });
 }

@@ -5,7 +5,7 @@ export enum LogLevel {
     ERROR = 'error',
     WARN = 'warn',
     INFO = 'info',
-    DEBUG = 'debug'
+    DEBUG = 'debug',
 }
 
 class Logger {
@@ -32,21 +32,18 @@ class Logger {
     constructor() {
         this.winstonLogger = winston.createLogger({
             level: 'info',
-            format: winston.format.combine(
-                winston.format.timestamp(),
-                winston.format.json()
-            ),
+            format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
             transports: [
                 new winston.transports.File({
                     filename: 'warden-error.log',
                     level: 'error',
-                    dirname: 'logs'
+                    dirname: 'logs',
                 }),
                 new winston.transports.File({
                     filename: 'warden-combined.log',
-                    dirname: 'logs'
-                })
-            ]
+                    dirname: 'logs',
+                }),
+            ],
         });
     }
 

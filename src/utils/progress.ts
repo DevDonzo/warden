@@ -28,7 +28,7 @@ export class ProgressReporter {
     addStep(id: string, name: string): void {
         this.steps.set(id, {
             name,
-            status: 'pending'
+            status: 'pending',
         });
     }
 
@@ -51,7 +51,7 @@ export class ProgressReporter {
 
         this.currentSpinner = ora({
             text: step.message,
-            color: 'cyan'
+            color: 'cyan',
         }).start();
     }
 
@@ -170,7 +170,7 @@ export class ProgressReporter {
             running: chalk.cyan('◐'),
             success: chalk.green('✓'),
             failed: chalk.red('✗'),
-            skipped: chalk.gray('○')
+            skipped: chalk.gray('○'),
         };
         return icons[status];
     }
@@ -184,7 +184,7 @@ export class ProgressReporter {
             running: chalk.cyan,
             success: chalk.green,
             failed: chalk.red,
-            skipped: chalk.gray
+            skipped: chalk.gray,
         };
         return colors[status];
     }
