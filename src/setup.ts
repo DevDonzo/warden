@@ -7,7 +7,7 @@ import { validator } from './utils/validator';
 
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
 });
 
 function question(prompt: string): Promise<string> {
@@ -22,14 +22,16 @@ function question(prompt: string): Promise<string> {
  * Interactive setup wizard
  */
 export async function runSetup(): Promise<void> {
-    console.log(chalk.blue(`
+    console.log(
+        chalk.blue(`
 ██╗    ██╗ █████╗ ██████╗ ██████╗ ███████╗███╗   ██╗
 ██║    ██║██╔══██╗██╔══██╗██╔══██╗██╔════╝████╗  ██║
 ██║ █╗ ██║███████║██████╔╝██║  ██║█████╗  ██╔██╗ ██║
 ██║███╗██║██╔══██║██╔══██╗██║  ██║██╔══╝  ██║╚██╗██║
 ╚███╔███╔╝██║  ██║██║  ██║██████╔╝███████╗██║ ╚████║
  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═══╝
-    `));
+    `)
+    );
     console.log(chalk.bold.blue('           WARDEN') + chalk.dim.gray(' by DevDonzo'));
     console.log(chalk.gray('           https://github.com/DevDonzo/warden\n'));
 
@@ -167,12 +169,12 @@ Identify and remediate critical and high-severity vulnerabilities in dependencie
         'scan-results/',
         'workspaces/',
         'logs/',
-        '*.log'
+        '*.log',
     ];
 
     if (fs.existsSync(gitignorePath)) {
         const existing = fs.readFileSync(gitignorePath, 'utf-8');
-        const missing = gitignoreEntries.filter(entry => !existing.includes(entry));
+        const missing = gitignoreEntries.filter((entry) => !existing.includes(entry));
 
         if (missing.length > 0) {
             fs.appendFileSync(gitignorePath, '\n# Warden\n' + missing.join('\n') + '\n');

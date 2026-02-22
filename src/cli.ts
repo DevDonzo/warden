@@ -74,7 +74,9 @@ program
                 validator.printValidationResults(validationResult);
 
                 if (!validationResult.valid) {
-                    logger.error('Validation failed. Fix the errors above or use --skip-validation to proceed anyway.');
+                    logger.error(
+                        'Validation failed. Fix the errors above or use --skip-validation to proceed anyway.'
+                    );
                     process.exit(1);
                 }
             }
@@ -88,9 +90,8 @@ program
                 scanner: options.scanner,
                 minSeverity: options.severity,
                 maxFixes: parseInt(options.maxFixes, 10),
-                verbose: options.verbose || false
+                verbose: options.verbose || false,
             });
-
         } catch (error: any) {
             logger.error('Fatal error during scan', error);
             process.exit(1);
@@ -163,7 +164,7 @@ program
                 logger.success('Configuration is valid!');
             } else {
                 logger.error('Configuration validation failed:');
-                result.errors.forEach(err => logger.error(`  - ${err}`));
+                result.errors.forEach((err) => logger.error(`  - ${err}`));
                 process.exit(1);
             }
         } else if (options.show) {
@@ -180,19 +181,20 @@ program
     .description('Show Warden status and recent scan history')
     .action(async () => {
         logger.header('📊 Warden Status');
-        
+
         // Check for scan results
         const fs = await import('fs');
         const path = await import('path');
         const scanResultsPath = path.join(process.cwd(), 'scan-results');
-        
+
         if (fs.existsSync(scanResultsPath)) {
-            const files = fs.readdirSync(scanResultsPath)
-                .filter(f => f.endsWith('.json'))
+            const files = fs
+                .readdirSync(scanResultsPath)
+                .filter((f) => f.endsWith('.json'))
                 .sort()
                 .reverse()
                 .slice(0, 5);
-            
+
             if (files.length > 0) {
                 logger.section('Recent Scans');
                 for (const file of files) {
@@ -213,7 +215,7 @@ program
         } else {
             logger.info('No scan results directory found. Run "warden scan" first.');
         }
-        
+
         // Check configuration
         logger.section('Configuration');
         const configPath = path.join(process.cwd(), '.wardenrc.json');
@@ -222,7 +224,7 @@ program
         } else {
             logger.warn('  No .wardenrc.json (using defaults)');
         }
-        
+
         // Check environment
         logger.section('Environment');
         logger.info(`  GITHUB_TOKEN: ${process.env.GITHUB_TOKEN ? '✓ Set' : '✗ Not set'}`);
@@ -236,15 +238,15 @@ program
     .option('--dry-run', 'Show what would be deleted without deleting')
     .action(async (options) => {
         logger.header('🧹 Cleaning Generated Files');
-        
+
         const fs = await import('fs');
         const path = await import('path');
-        
+
         const dirsToClean = ['scan-results', 'logs'];
         const filesToClean = options.all ? ['.wardenrc.json'] : [];
-        
+
         let cleaned = 0;
-        
+
         for (const dir of dirsToClean) {
             const dirPath = path.join(process.cwd(), dir);
             if (fs.existsSync(dirPath)) {
@@ -257,7 +259,7 @@ program
                 cleaned++;
             }
         }
-        
+
         for (const file of filesToClean) {
             const filePath = path.join(process.cwd(), file);
             if (fs.existsSync(filePath)) {
@@ -270,7 +272,7 @@ program
                 cleaned++;
             }
         }
-        
+
         if (cleaned === 0) {
             logger.info('Nothing to clean.');
         } else if (options.dryRun) {
@@ -285,13 +287,13 @@ program
     .description('Diagnose common issues and suggest fixes')
     .action(async () => {
         logger.header('🩺 Warden Doctor');
-        
+
         const { execSync } = await import('child_process');
         const fs = await import('fs');
         const path = await import('path');
-        
+
         let issues = 0;
-        
+
         // Check Node version
         logger.section('Node.js');
         try {
@@ -307,7 +309,7 @@ program
             logger.error('  Could not detect Node version');
             issues++;
         }
-        
+
         // Check Git
         logger.section('Git');
         try {
@@ -317,7 +319,7 @@ program
             logger.error('  Git not found');
             issues++;
         }
-        
+
         // Check npm
         logger.section('npm');
         try {
@@ -327,7 +329,7 @@ program
             logger.error('  npm not found');
             issues++;
         }
-        
+
         // Check Snyk
         logger.section('Snyk CLI');
         try {
@@ -336,7 +338,7 @@ program
         } catch {
             logger.warn('  Snyk CLI not found (optional, will use npm audit)');
         }
-        
+
         // Check tokens
         logger.section('Tokens');
         if (process.env.GITHUB_TOKEN) {
@@ -344,13 +346,13 @@ program
         } else {
             logger.warn('  GITHUB_TOKEN not set (required for PR creation)');
         }
-        
+
         if (process.env.SNYK_TOKEN) {
             logger.success('  SNYK_TOKEN set ✓');
         } else {
             logger.warn('  SNYK_TOKEN not set (required for Snyk scanner)');
         }
-        
+
         // Check project
         logger.section('Project');
         const pkgPath = path.join(process.cwd(), 'package.json');
@@ -360,7 +362,7 @@ program
             logger.error('  No package.json found');
             issues++;
         }
-        
+
         // Summary
         logger.section('Summary');
         if (issues === 0) {
@@ -410,7 +412,7 @@ program
             const validation = configManager.validateDastConfig();
             if (!validation.valid) {
                 logger.error('DAST configuration validation failed:');
-                validation.errors.forEach(err => logger.error(`  - ${err}`));
+                validation.errors.forEach((err) => logger.error(`  - ${err}`));
                 process.exit(1);
             }
 
@@ -419,7 +421,7 @@ program
             if (!targetConfig) {
                 logger.error(`Target "${target}" not found in configuration.`);
                 logger.info('Available targets:');
-                dastConfig.targets.forEach(t => {
+                dastConfig.targets.forEach((t) => {
                     logger.info(`  - ${t.url} (${t.authorized ? 'authorized' : 'NOT AUTHORIZED'})`);
                 });
                 process.exit(1);
@@ -482,9 +484,8 @@ program
                 maxFixes: 1,
                 verbose: options.verbose || false,
                 scanMode: 'dast',
-                dastTarget: target
+                dastTarget: target,
             });
-
         } catch (error: any) {
             logger.error('Fatal error during DAST scan', error);
             process.exit(1);

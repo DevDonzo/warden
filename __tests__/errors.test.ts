@@ -4,14 +4,14 @@ import {
     FixError,
     PRError,
     ConfigError,
-    ValidationError
+    ValidationError,
 } from '../src/errors';
 
 describe('Error Types', () => {
     describe('WardenError', () => {
         it('should create a base error with code and timestamp', () => {
             const error = new WardenError('Test error', 'TEST_CODE', true);
-            
+
             expect(error.name).toBe('WardenError');
             expect(error.message).toBe('Test error');
             expect(error.code).toBe('TEST_CODE');
@@ -22,7 +22,7 @@ describe('Error Types', () => {
         it('should serialize to JSON', () => {
             const error = new WardenError('Test', 'CODE', false);
             const json = error.toJSON();
-            
+
             expect(json).toHaveProperty('name', 'WardenError');
             expect(json).toHaveProperty('code', 'CODE');
             expect(json).toHaveProperty('message', 'Test');
@@ -34,7 +34,7 @@ describe('Error Types', () => {
     describe('ScanError', () => {
         it('should include scanner information', () => {
             const error = new ScanError('Scan failed', 'snyk', 'API timeout');
-            
+
             expect(error.name).toBe('ScanError');
             expect(error.code).toBe('SCAN_ERROR');
             expect(error.scanner).toBe('snyk');
@@ -55,7 +55,7 @@ describe('Error Types', () => {
                 'lodash',
                 'npm update lodash@4.17.21'
             );
-            
+
             expect(error.name).toBe('FixError');
             expect(error.code).toBe('FIX_ERROR');
             expect(error.vulnerabilityId).toBe('CVE-2021-1234');
@@ -67,7 +67,7 @@ describe('Error Types', () => {
     describe('PRError', () => {
         it('should include branch and HTTP status', () => {
             const error = new PRError('PR creation failed', 'warden/fix-lodash', 422);
-            
+
             expect(error.name).toBe('PRError');
             expect(error.code).toBe('PR_ERROR');
             expect(error.branch).toBe('warden/fix-lodash');
@@ -76,7 +76,7 @@ describe('Error Types', () => {
 
         it('should handle rate limiting', () => {
             const error = new PRError('Rate limited', 'warden/fix-test', 429, true);
-            
+
             expect(error.rateLimited).toBe(true);
             expect(error.recoverable).toBe(false); // Rate limited = not immediately recoverable
         });
@@ -89,7 +89,7 @@ describe('Error Types', () => {
                 '/path/to/.wardenrc.json',
                 'scannerType'
             );
-            
+
             expect(error.name).toBe('ConfigError');
             expect(error.code).toBe('CONFIG_ERROR');
             expect(error.configPath).toBe('/path/to/.wardenrc.json');
@@ -99,13 +99,8 @@ describe('Error Types', () => {
 
     describe('ValidationError', () => {
         it('should include field validation details', () => {
-            const error = new ValidationError(
-                'Invalid severity',
-                'severity',
-                'string',
-                123
-            );
-            
+            const error = new ValidationError('Invalid severity', 'severity', 'string', 123);
+
             expect(error.name).toBe('ValidationError');
             expect(error.code).toBe('VALIDATION_ERROR');
             expect(error.field).toBe('severity');

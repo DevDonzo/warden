@@ -99,10 +99,7 @@ async function prepareWorkspace(repoUrl: string): Promise<string> {
 /**
  * Orchestrate the fix process
  */
-async function orchestrateFix(
-    scanResult: any,
-    options: WardenOptions
-): Promise<void> {
+async function orchestrateFix(scanResult: any, options: WardenOptions): Promise<void> {
     const snyk = new SnykScanner();
     const highPriority = snyk.filterHighPriority(scanResult);
 
@@ -159,7 +156,7 @@ async function orchestrateFix(
     const prUrl = await diplomat.createPullRequest({
         branch: branchName,
         title: `[SECURITY] Fix for ${topIssue.vulnerabilityId}`,
-        body: `## 🛡️ Automated Security Fix\n\n${topIssue.description}\n\n**Remediation**: ${topIssue.suggestedFix}\n\n---\n*Verified by Warden Patching Engine* ✅`
+        body: `## 🛡️ Automated Security Fix\n\n${topIssue.description}\n\n**Remediation**: ${topIssue.suggestedFix}\n\n---\n*Verified by Warden Patching Engine* ✅`,
     });
 
     if (prUrl) {
@@ -206,7 +203,9 @@ async function runDastWorkflow(target: DastTarget): Promise<ScanResult> {
                 outputDir
             );
             metasploitResults = await msfScanner.scan(nmapResults?.vulnerabilities as any);
-            spinner.succeed(`Metasploit scan completed: ${metasploitResults.vulnerabilities.length} findings`);
+            spinner.succeed(
+                `Metasploit scan completed: ${metasploitResults.vulnerabilities.length} findings`
+            );
         } catch (error: any) {
             spinner.fail(`Metasploit scan failed: ${error.message}`);
         }
@@ -215,15 +214,15 @@ async function runDastWorkflow(target: DastTarget): Promise<ScanResult> {
     // Merge results
     const vulnerabilities = [
         ...(nmapResults?.vulnerabilities || []),
-        ...(metasploitResults?.vulnerabilities || [])
+        ...(metasploitResults?.vulnerabilities || []),
     ];
 
     const summary = {
         total: vulnerabilities.length,
-        critical: vulnerabilities.filter(v => v.severity === 'critical').length,
-        high: vulnerabilities.filter(v => v.severity === 'high').length,
-        medium: vulnerabilities.filter(v => v.severity === 'medium').length,
-        low: vulnerabilities.filter(v => v.severity === 'low').length
+        critical: vulnerabilities.filter((v) => v.severity === 'critical').length,
+        high: vulnerabilities.filter((v) => v.severity === 'high').length,
+        medium: vulnerabilities.filter((v) => v.severity === 'medium').length,
+        low: vulnerabilities.filter((v) => v.severity === 'low').length,
     };
 
     const result: ScanResult = {
@@ -237,8 +236,8 @@ async function runDastWorkflow(target: DastTarget): Promise<ScanResult> {
             target: target.url,
             scanType: 'dast',
             nmapEnabled: !!nmapResults,
-            metasploitEnabled: !!metasploitResults
-        }
+            metasploitEnabled: !!metasploitResults,
+        },
     };
     return result;
 }
@@ -281,7 +280,7 @@ async function orchestrateDastRemediation(
         branch: branchName,
         title: `[SECURITY] DAST Infrastructure Security Advisory`,
         body: advisory,
-        labels: ['security', 'dast', 'infrastructure', 'requires-action']
+        labels: ['security', 'dast', 'infrastructure', 'requires-action'],
     });
 
     if (prUrl) {
@@ -309,7 +308,7 @@ function generateDastAdvisory(scanResult: ScanResult): string {
         `- **Low**: ${scanResult.summary.low}`,
         '',
         '## Findings',
-        ''
+        '',
     ];
 
     // Group by severity
@@ -317,7 +316,7 @@ function generateDastAdvisory(scanResult: ScanResult): string {
         critical: [],
         high: [],
         medium: [],
-        low: []
+        low: [],
     };
 
     scanResult.vulnerabilities.forEach((vuln: any) => {
@@ -331,13 +330,14 @@ function generateDastAdvisory(scanResult: ScanResult): string {
         lines.push(`### ${severity.toUpperCase()} Severity (${vulns.length})`);
         lines.push('');
 
-        vulns.forEach(vuln => {
+        vulns.forEach((vuln) => {
             lines.push(`#### ${vuln.title}`);
             lines.push('');
             lines.push(`- **ID**: ${vuln.id}`);
             if (vuln.targetHost) lines.push(`- **Host**: ${vuln.targetHost}`);
             if (vuln.targetPort) lines.push(`- **Port**: ${vuln.targetPort}`);
-            if (vuln.service) lines.push(`- **Service**: ${vuln.service} ${vuln.serviceVersion || ''}`);
+            if (vuln.service)
+                lines.push(`- **Service**: ${vuln.service} ${vuln.serviceVersion || ''}`);
             if (vuln.cvssScore) lines.push(`- **CVSS Score**: ${vuln.cvssScore}`);
             lines.push('');
             lines.push('**Description**:');
@@ -410,7 +410,9 @@ function generateRemediationSteps(vuln: Vulnerability): string {
             steps.push('- Ensure HTTPS is enabled with valid TLS certificate');
             steps.push('- Configure security headers (HSTS, CSP, X-Frame-Options)');
             steps.push('- Keep web server software up to date');
-            steps.push('- Review application-level security (authentication, authorization, input validation)');
+            steps.push(
+                '- Review application-level security (authentication, authorization, input validation)'
+            );
         }
     }
 
@@ -431,7 +433,9 @@ function generateRemediationSteps(vuln: Vulnerability): string {
         }
     }
 
-    return steps.length > 0 ? steps.join('\n') : 'Review service configuration and apply security best practices.';
+    return steps.length > 0
+        ? steps.join('\n')
+        : 'Review service configuration and apply security best practices.';
 }
 
 /**
@@ -447,7 +451,9 @@ export async function runWarden(options: WardenOptions): Promise<void> {
         const specs = loadSpecs();
 
         if (specs.length === 0) {
-            logger.warn('No active specifications found in /SPEC. Continuing with default behavior.');
+            logger.warn(
+                'No active specifications found in /SPEC. Continuing with default behavior.'
+            );
         } else {
             logger.info(`Loaded ${specs.length} specification(s)`);
         }
@@ -476,7 +482,7 @@ export async function runWarden(options: WardenOptions): Promise<void> {
                     return;
                 }
             } else {
-                target = dastConfig.targets.find(t => t.authorized) || null;
+                target = dastConfig.targets.find((t) => t.authorized) || null;
                 if (!target) {
                     logger.error('No authorized targets found in configuration.');
                     return;
@@ -484,7 +490,9 @@ export async function runWarden(options: WardenOptions): Promise<void> {
             }
 
             logger.info(`Target: ${target.url}`);
-            logger.info(`Authorization: ${target.authorized ? '✓ Authorized' : '✗ NOT AUTHORIZED'}`);
+            logger.info(
+                `Authorization: ${target.authorized ? '✓ Authorized' : '✗ NOT AUTHORIZED'}`
+            );
 
             // Run DAST workflow
             const scanResult = await runDastWorkflow(target);
@@ -528,7 +536,6 @@ export async function runWarden(options: WardenOptions): Promise<void> {
             await orchestrateFix(scanResult, options);
 
             logger.header('✅ Patrol Session Completed Successfully');
-
         } catch (scanError: any) {
             spinner.fail('Security scan failed');
             logger.error('Scanner execution failed', scanError);
@@ -557,7 +564,6 @@ export async function runWarden(options: WardenOptions): Promise<void> {
                 throw scanError;
             }
         }
-
     } catch (error: any) {
         logger.error('Critical system error', error);
         throw error;

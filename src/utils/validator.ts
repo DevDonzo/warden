@@ -17,7 +17,7 @@ export class Validator {
         return {
             valid,
             errors: [],
-            warnings: []
+            warnings: [],
         };
     }
 
@@ -53,7 +53,9 @@ export class Validator {
 
         // Optional but recommended
         if (!process.env.SNYK_TOKEN) {
-            result.warnings.push('SNYK_TOKEN not set. Snyk may require authentication for some features.');
+            result.warnings.push(
+                'SNYK_TOKEN not set. Snyk may require authentication for some features.'
+            );
         }
 
         if (!process.env.GITHUB_OWNER) {
@@ -124,7 +126,7 @@ export class Validator {
             const remotes = execSync('git remote -v', {
                 cwd: targetPath,
                 stdio: 'pipe',
-                encoding: 'utf-8'
+                encoding: 'utf-8',
             });
 
             if (!remotes || remotes.trim().length === 0) {
@@ -135,13 +137,14 @@ export class Validator {
             const status = execSync('git status --porcelain', {
                 cwd: targetPath,
                 stdio: 'pipe',
-                encoding: 'utf-8'
+                encoding: 'utf-8',
             });
 
             if (status && status.trim().length > 0) {
-                result.warnings.push('Repository has uncommitted changes. These will not be included in automated fixes.');
+                result.warnings.push(
+                    'Repository has uncommitted changes. These will not be included in automated fixes.'
+                );
             }
-
         } catch (error: any) {
             result.errors.push(`Git validation failed: ${error.message}`);
             result.valid = false;
@@ -172,9 +175,10 @@ export class Validator {
             }
 
             if (!packageJson.scripts || !packageJson.scripts.test) {
-                result.warnings.push('No test script found in package.json. Verification will be skipped.');
+                result.warnings.push(
+                    'No test script found in package.json. Verification will be skipped.'
+                );
             }
-
         } catch (error: any) {
             result.errors.push(`Invalid package.json: ${error.message}`);
             result.valid = false;
@@ -193,7 +197,7 @@ export class Validator {
             this.validateEnvironment(),
             this.validateDependencies(),
             this.validateGitRepository(targetPath),
-            this.validatePackageJson(targetPath)
+            this.validatePackageJson(targetPath),
         ];
 
         const combined = this.createResult();
@@ -215,12 +219,12 @@ export class Validator {
     printValidationResults(result: ValidationResult) {
         if (result.errors.length > 0) {
             logger.error('Validation failed with the following errors:');
-            result.errors.forEach(err => logger.error(`  ✗ ${err}`));
+            result.errors.forEach((err) => logger.error(`  ✗ ${err}`));
         }
 
         if (result.warnings.length > 0) {
             logger.warn('Validation warnings:');
-            result.warnings.forEach(warn => logger.warn(`  ⚠ ${warn}`));
+            result.warnings.forEach((warn) => logger.warn(`  ⚠ ${warn}`));
         }
 
         if (result.valid && result.errors.length === 0) {

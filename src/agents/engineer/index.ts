@@ -41,10 +41,10 @@ interface ScanResults {
 }
 
 const SEVERITY_PRIORITY: Record<string, number> = {
-    'critical': 4,
-    'high': 3,
-    'medium': 2,
-    'low': 1
+    critical: 4,
+    high: 3,
+    medium: 2,
+    low: 1,
 };
 
 export class EngineerAgent {
@@ -132,11 +132,11 @@ export class EngineerAgent {
 
         logger.info(`Found ${scanResults.summary.total} vulnerabilities`);
 
-        const diagnoses: Diagnosis[] = prioritized.map(vuln => ({
+        const diagnoses: Diagnosis[] = prioritized.map((vuln) => ({
             vulnerabilityId: vuln.id,
             description: `${vuln.title} in ${vuln.packageName}@${vuln.version} (${vuln.severity.toUpperCase()})`,
             suggestedFix: `Update ${vuln.packageName} from ${vuln.version} to ${vuln.fixedIn[0]}`,
-            filesToModify: ['package.json']
+            filesToModify: ['package.json'],
         }));
 
         return diagnoses;
@@ -152,13 +152,13 @@ export class EngineerAgent {
         const prioritized = this.prioritizeVulnerabilities(scanResults.vulnerabilities);
 
         const advisories: Diagnosis[] = prioritized.map((vuln) => {
-            const dastVuln = dastVulns.find(v => v.id === vuln.id);
+            const dastVuln = dastVulns.find((v) => v.id === vuln.id);
 
             return {
                 vulnerabilityId: vuln.id,
                 description: this.formatDastFinding(vuln, dastVuln),
                 suggestedFix: this.generateDastRemediation(vuln, dastVuln),
-                filesToModify: [] // No auto-fix for DAST
+                filesToModify: [], // No auto-fix for DAST
             };
         });
 
@@ -190,7 +190,7 @@ export class EngineerAgent {
 
         if (dastVuln?.findings && dastVuln.findings.length > 0) {
             description += '\n\nTechnical Details:';
-            dastVuln.findings.forEach(finding => {
+            dastVuln.findings.forEach((finding) => {
                 description += `\n  - ${finding}`;
             });
         }
@@ -275,7 +275,9 @@ export class EngineerAgent {
 
         // Parsing the strings to get the package info
         // Format: "Update [package] from [old] to [new]"
-        const match = diagnosis.suggestedFix.match(/Update\s+([^\s]+)\s+from\s+([^\s]+)\s+to\s+([^\s]+)/);
+        const match = diagnosis.suggestedFix.match(
+            /Update\s+([^\s]+)\s+from\s+([^\s]+)\s+to\s+([^\s]+)/
+        );
 
         if (!match) {
             logger.error('Could not parse fix suggestion format.');
@@ -292,7 +294,7 @@ export class EngineerAgent {
             // 2. Read package.json
             const packageJsonPath = path.resolve(process.cwd(), 'package.json');
             if (!fs.existsSync(packageJsonPath)) {
-                throw new Error("package.json not found!");
+                throw new Error('package.json not found!');
             }
             const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
@@ -300,20 +302,28 @@ export class EngineerAgent {
             let updated = false;
             // Check dependencies
             if (packageJson.dependencies && packageJson.dependencies[packageName]) {
-                logger.info(`Updating dependencies: ${packageName} ${packageJson.dependencies[packageName]} -> ${newVersion}`);
+                logger.info(
+                    `Updating dependencies: ${packageName} ${packageJson.dependencies[packageName]} -> ${newVersion}`
+                );
                 packageJson.dependencies[packageName] = newVersion;
                 updated = true;
             }
             // Check devDependencies
             if (packageJson.devDependencies && packageJson.devDependencies[packageName]) {
-                logger.info(`Updating devDependencies: ${packageName} ${packageJson.devDependencies[packageName]} -> ${newVersion}`);
+                logger.info(
+                    `Updating devDependencies: ${packageName} ${packageJson.devDependencies[packageName]} -> ${newVersion}`
+                );
                 packageJson.devDependencies[packageName] = newVersion;
                 updated = true;
             }
 
             if (!updated) {
-                logger.warn(`Package ${packageName} not found in dependencies. Trying to install directly...`);
-                logger.error('Failed to find direct dependency in package.json. This might be a transitive dependency.');
+                logger.warn(
+                    `Package ${packageName} not found in dependencies. Trying to install directly...`
+                );
+                logger.error(
+                    'Failed to find direct dependency in package.json. This might be a transitive dependency.'
+                );
                 return false;
             }
 
@@ -341,7 +351,6 @@ export class EngineerAgent {
 
             logger.success(`Fix applied successfully on branch ${branchName}`);
             return true;
-
         } catch (error) {
             logger.error('Failed to apply fix:', error as Error);
             return false;
@@ -360,7 +369,9 @@ export class EngineerAgent {
             }
 
             const criticalDiagnosis = diagnoses[0];
-            logger.info(`Targeting highest priority vulnerability: ${criticalDiagnosis.vulnerabilityId}`);
+            logger.info(
+                `Targeting highest priority vulnerability: ${criticalDiagnosis.vulnerabilityId}`
+            );
 
             const success = await this.applyFix(criticalDiagnosis);
 
@@ -369,7 +380,6 @@ export class EngineerAgent {
             } else {
                 logger.warn('Engineer Agent failed to fix the issue.');
             }
-
         } catch (error) {
             logger.error('Engineer Agent encountered an error:', error as Error);
             throw error;

@@ -11,7 +11,7 @@ jest.mock('../src/agents/engineer/git', () => ({
         createBranch: jest.fn().mockResolvedValue(true),
         commitChanges: jest.fn().mockResolvedValue(true),
         hasUncommittedChanges: jest.fn().mockResolvedValue(false),
-    }))
+    })),
 }));
 
 describe('EngineerAgent', () => {

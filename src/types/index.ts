@@ -1,6 +1,6 @@
 /**
  * Warden Shared Types
- * 
+ *
  * Centralized type definitions used across the application.
  */
 

@@ -22,7 +22,9 @@ export class DiplomatAgent {
         logger.diplomat(`Preparing to open PR for ${config.branch}`);
 
         if (!this.octokit) {
-            throw new Error("Diplomat: No GITHUB_TOKEN found. Real API Integration requires a token.");
+            throw new Error(
+                'Diplomat: No GITHUB_TOKEN found. Real API Integration requires a token.'
+            );
         }
 
         try {
@@ -63,7 +65,9 @@ export class DiplomatAgent {
 
             // Provide helpful error messages
             if (error.status === 422) {
-                logger.warn(`Branch '${config.branch}' may not exist on remote, or a PR already exists.`);
+                logger.warn(
+                    `Branch '${config.branch}' may not exist on remote, or a PR already exists.`
+                );
             } else if (error.status === 401) {
                 logger.warn(`GITHUB_TOKEN may be invalid or expired.`);
             } else if (error.status === 404) {
@@ -83,7 +87,7 @@ export class DiplomatAgent {
         try {
             // Get the remote URL
             const remoteUrl = execSync('git config --get remote.origin.url', {
-                encoding: 'utf-8'
+                encoding: 'utf-8',
             }).trim();
 
             // Parse GitHub URL (supports both HTTPS and SSH formats)
@@ -148,7 +152,7 @@ export class DiplomatAgent {
                 owner,
                 repo,
                 issue_number: issueNumber,
-                assignees: [assignee]
+                assignees: [assignee],
             });
             logger.diplomat(`Assigned PR to ${assignee}`);
         } catch (error: any) {
@@ -164,7 +168,7 @@ export class DiplomatAgent {
 
         try {
             const branches = execSync('git branch --list "warden/*"', {
-                encoding: 'utf-8'
+                encoding: 'utf-8',
             }).trim();
 
             if (!branches) {
@@ -174,8 +178,8 @@ export class DiplomatAgent {
             // Parse branch names (remove leading * and whitespace)
             const branchList = branches
                 .split('\n')
-                .map(b => b.replace(/^\*?\s+/, ''))
-                .filter(b => b.length > 0);
+                .map((b) => b.replace(/^\*?\s+/, ''))
+                .filter((b) => b.length > 0);
 
             return branchList;
         } catch (error: any) {
@@ -194,7 +198,7 @@ export class DiplomatAgent {
             logger.diplomat(`Pushing ${branch} to origin...`);
             execSync(`git push -u origin ${branch}`, {
                 encoding: 'utf-8',
-                stdio: 'inherit'
+                stdio: 'inherit',
             });
             logger.success(`Branch ${branch} pushed successfully.`);
             return true;
@@ -214,7 +218,7 @@ export class DiplomatAgent {
             const name = fixPart
                 .replace(/^fix-/, '')
                 .split('-')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
             vulnerabilityName = name;
         }
@@ -291,7 +295,7 @@ export class DiplomatAgent {
                 const prUrl = await this.createPullRequest({
                     branch,
                     title,
-                    body
+                    body,
                 });
 
                 prUrls.push(prUrl);

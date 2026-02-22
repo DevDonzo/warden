@@ -37,7 +37,7 @@ describe('Validator', () => {
             const result = validator.validateEnvironment();
 
             expect(result.warnings.length).toBeGreaterThan(0);
-            expect(result.warnings.some(w => w.includes('SNYK_TOKEN'))).toBe(true);
+            expect(result.warnings.some((w) => w.includes('SNYK_TOKEN'))).toBe(true);
         });
     });
 
@@ -46,14 +46,14 @@ describe('Validator', () => {
             const result = validator.validateDependencies();
 
             // Git should be installed on most systems
-            const gitError = result.errors.find(e => e.includes('Git'));
+            const gitError = result.errors.find((e) => e.includes('Git'));
             expect(gitError).toBeUndefined();
         });
 
         it('should detect node installation', () => {
             const result = validator.validateDependencies();
 
-            const nodeError = result.errors.find(e => e.includes('Node.js'));
+            const nodeError = result.errors.find((e) => e.includes('Node.js'));
             expect(nodeError).toBeUndefined();
         });
     });
@@ -72,7 +72,7 @@ describe('Validator', () => {
             const result = validator.validatePackageJson(nonExistentPath);
 
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('package.json not found'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('package.json not found'))).toBe(true);
         });
     });
 });

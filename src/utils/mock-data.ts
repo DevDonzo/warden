@@ -13,7 +13,7 @@ export function generateMockScanResult(): ScanResult {
             version: '4.17.15',
             fixedIn: ['4.17.21'],
             description: 'Prototype pollution vulnerability in lodash',
-            cvssScore: 9.8
+            cvssScore: 9.8,
         },
         {
             id: 'SNYK-JS-AXIOS-1038255',
@@ -23,7 +23,7 @@ export function generateMockScanResult(): ScanResult {
             version: '0.21.0',
             fixedIn: ['0.21.1'],
             description: 'SSRF vulnerability in axios',
-            cvssScore: 7.5
+            cvssScore: 7.5,
         },
         {
             id: 'SNYK-JS-MINIMIST-559764',
@@ -33,7 +33,7 @@ export function generateMockScanResult(): ScanResult {
             version: '1.2.0',
             fixedIn: ['1.2.6'],
             description: 'Prototype pollution in minimist',
-            cvssScore: 5.6
+            cvssScore: 5.6,
         },
         {
             id: 'SNYK-JS-DOTENV-1015748',
@@ -43,20 +43,23 @@ export function generateMockScanResult(): ScanResult {
             version: '8.0.0',
             fixedIn: ['8.2.0'],
             description: 'Potential information exposure',
-            cvssScore: 3.1
-        }
+            cvssScore: 3.1,
+        },
     ];
 
     // Count vulnerabilities by severity in single pass
-    const summary = vulnerabilities.reduce((acc, v) => ({
-        ...acc,
-        [v.severity]: (acc[v.severity as keyof typeof acc] || 0) + 1,
-        total: acc.total + 1
-    }), { critical: 0, high: 0, medium: 0, low: 0, total: 0 });
+    const summary = vulnerabilities.reduce(
+        (acc, v) => ({
+            ...acc,
+            [v.severity]: (acc[v.severity as keyof typeof acc] || 0) + 1,
+            total: acc.total + 1,
+        }),
+        { critical: 0, high: 0, medium: 0, low: 0, total: 0 }
+    );
 
     return {
         timestamp: new Date().toISOString(),
         vulnerabilities,
-        summary
+        summary,
     };
 }

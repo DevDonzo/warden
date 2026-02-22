@@ -19,21 +19,21 @@ const SEVERITY_COLORS_HEX: Record<NotificationSeverity, string> = {
     info: '#3b82f6',
     warning: '#f59e0b',
     error: '#ef4444',
-    success: '#10b981'
+    success: '#10b981',
 };
 
 const SEVERITY_COLORS_INT: Record<NotificationSeverity, number> = {
     info: 0x3b82f6,
     warning: 0xf59e0b,
     error: 0xef4444,
-    success: 0x10b981
+    success: 0x10b981,
 };
 
 const SEVERITY_EMOJIS: Record<NotificationSeverity, string> = {
     info: 'ℹ️',
     warning: '⚠️',
     error: '❌',
-    success: '✅'
+    success: '✅',
 };
 
 export class NotificationService {
@@ -97,16 +97,16 @@ export class NotificationService {
                     fields: this.buildFields(payload.details),
                     footer: 'Warden Security Bot',
                     footer_icon: 'https://github.com/DevDonzo.png',
-                    ts: Math.floor(Date.now() / 1000)
-                }
-            ]
+                    ts: Math.floor(Date.now() / 1000),
+                },
+            ],
         };
 
         try {
             const response = await fetch(this.config.slack.webhook, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(slackPayload)
+                body: JSON.stringify(slackPayload),
             });
 
             if (!response.ok) {
@@ -141,18 +141,18 @@ export class NotificationService {
                     color,
                     fields: this.buildFields(payload.details),
                     footer: {
-                        text: 'Warden Security Bot'
+                        text: 'Warden Security Bot',
                     },
-                    timestamp: new Date().toISOString()
-                }
-            ]
+                    timestamp: new Date().toISOString(),
+                },
+            ],
         };
 
         try {
             const response = await fetch(this.config.discord.webhook, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(discordPayload)
+                body: JSON.stringify(discordPayload),
             });
 
             if (!response.ok) {
@@ -192,7 +192,7 @@ export class NotificationService {
             fields.push({
                 name: 'Repository',
                 value: details.repository,
-                inline: true
+                inline: true,
             });
         }
 
@@ -200,7 +200,7 @@ export class NotificationService {
             fields.push({
                 name: 'Vulnerabilities Found',
                 value: details.vulnerabilities.toString(),
-                inline: true
+                inline: true,
             });
         }
 
@@ -208,7 +208,7 @@ export class NotificationService {
             fields.push({
                 name: 'Fixed',
                 value: details.fixed.toString(),
-                inline: true
+                inline: true,
             });
         }
 
@@ -216,7 +216,7 @@ export class NotificationService {
             fields.push({
                 name: 'Pull Request',
                 value: details.prUrl,
-                inline: false
+                inline: false,
             });
         }
 
@@ -252,7 +252,7 @@ export class NotificationService {
             title: 'Security Scan Started',
             message: `Warden has started scanning for vulnerabilities`,
             severity: 'info',
-            details: { repository }
+            details: { repository },
         });
     }
 
@@ -261,15 +261,16 @@ export class NotificationService {
      */
     async notifyScanCompleted(repository: string, vulnerabilities: number): Promise<void> {
         const severity = vulnerabilities > 0 ? 'warning' : 'success';
-        const message = vulnerabilities > 0
-            ? `Found ${vulnerabilities} vulnerabilities`
-            : 'No vulnerabilities found';
+        const message =
+            vulnerabilities > 0
+                ? `Found ${vulnerabilities} vulnerabilities`
+                : 'No vulnerabilities found';
 
         await this.send({
             title: 'Security Scan Completed',
             message,
             severity,
-            details: { repository, vulnerabilities }
+            details: { repository, vulnerabilities },
         });
     }
 
@@ -281,7 +282,7 @@ export class NotificationService {
             title: 'Security Fix Applied',
             message: `Warden has automatically fixed ${fixed} vulnerability(ies)`,
             severity: 'success',
-            details: { repository, fixed, prUrl }
+            details: { repository, fixed, prUrl },
         });
     }
 
@@ -293,11 +294,13 @@ export class NotificationService {
             title: 'Security Scan Failed',
             message: `Error: ${error}`,
             severity: 'error',
-            details: { repository }
+            details: { repository },
         });
     }
 }
 
-export function createNotificationService(config: WardenConfig['notifications']): NotificationService {
+export function createNotificationService(
+    config: WardenConfig['notifications']
+): NotificationService {
     return new NotificationService(config);
 }

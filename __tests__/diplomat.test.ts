@@ -2,8 +2,8 @@
 jest.mock('@octokit/rest', () => ({
     Octokit: jest.fn().mockImplementation(() => ({
         pulls: { create: jest.fn() },
-        issues: { addLabels: jest.fn(), addAssignees: jest.fn() }
-    }))
+        issues: { addLabels: jest.fn(), addAssignees: jest.fn() },
+    })),
 }));
 
 import { DiplomatAgent } from '../src/agents/diplomat';

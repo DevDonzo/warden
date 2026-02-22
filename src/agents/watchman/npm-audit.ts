@@ -6,16 +6,15 @@ import { logger } from '../../utils/logger';
 const execAsync = promisify(exec);
 
 const SEVERITY_MAPPING: Record<string, Vulnerability['severity']> = {
-    'critical': 'critical',
-    'high': 'high',
-    'moderate': 'medium',
-    'medium': 'medium',
-    'low': 'low',
-    'info': 'low'
+    critical: 'critical',
+    high: 'high',
+    moderate: 'medium',
+    medium: 'medium',
+    low: 'low',
+    info: 'low',
 };
 
 export class NpmAuditScanner {
-
     /**
      * Parse severity string to normalized severity level
      */
@@ -40,13 +39,16 @@ export class NpmAuditScanner {
 
             vulnerabilities.push({
                 id: `NPM-${key}-${vuln.via?.[0]?.source || 'audit'}`,
-                title: typeof vuln.via?.[0] === 'object' ? vuln.via[0].title : 'Vulnerability found via npm audit',
+                title:
+                    typeof vuln.via?.[0] === 'object'
+                        ? vuln.via[0].title
+                        : 'Vulnerability found via npm audit',
                 severity,
                 packageName: vuln.name,
                 version: vuln.range || 'unknown',
                 fixedIn: vuln.fixAvailable ? ['npm audit fix'] : [],
                 description: `Dependency path: ${key}`,
-                cvssScore: undefined
+                cvssScore: undefined,
             });
         }
 
@@ -60,7 +62,9 @@ export class NpmAuditScanner {
             // npm audit returns exit code 1 if vulnerabilities are found, so we need to handle that
             let jsonOutput = '';
             try {
-                const { stdout } = await execAsync('npm audit --json', { maxBuffer: 10 * 1024 * 1024 });
+                const { stdout } = await execAsync('npm audit --json', {
+                    maxBuffer: 10 * 1024 * 1024,
+                });
                 jsonOutput = stdout;
             } catch (error: any) {
                 // If the error code is 1, it just means vulns were found, which is fine.
@@ -73,7 +77,6 @@ export class NpmAuditScanner {
             }
 
             return this.parseAuditOutput(jsonOutput);
-
         } catch (error: any) {
             logger.error('npm audit failed', error);
             throw new Error(`npm audit scan failed: ${error.message}`);
@@ -85,7 +88,7 @@ export class NpmAuditScanner {
         try {
             data = JSON.parse(jsonOutput);
         } catch (e) {
-            throw new Error("Failed to parse npm audit JSON output");
+            throw new Error('Failed to parse npm audit JSON output');
         }
 
         const vulnerabilities = this.formatVulnerabilities(data);
@@ -94,7 +97,7 @@ export class NpmAuditScanner {
             critical: 0,
             high: 0,
             medium: 0,
-            low: 0
+            low: 0,
         };
 
         for (const vuln of vulnerabilities) {
@@ -107,7 +110,7 @@ export class NpmAuditScanner {
         return {
             timestamp: new Date().toISOString(),
             vulnerabilities,
-            summary
+            summary,
         };
     }
 }

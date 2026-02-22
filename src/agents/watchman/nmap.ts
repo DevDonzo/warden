@@ -97,7 +97,9 @@ export class NmapScanner {
 
         // Check authorization
         if (!this.target.authorized) {
-            throw new Error(`Target ${this.target.url} is not authorized for scanning. Set "authorized: true" in configuration.`);
+            throw new Error(
+                `Target ${this.target.url} is not authorized for scanning. Set "authorized: true" in configuration.`
+            );
         }
 
         // Check Nmap installation
@@ -119,7 +121,7 @@ export class NmapScanner {
 
         try {
             const { stderr } = await execAsync(command, {
-                maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+                maxBuffer: 10 * 1024 * 1024, // 10MB buffer
             });
 
             if (stderr && !stderr.includes('Warning')) {
@@ -144,13 +146,14 @@ export class NmapScanner {
                     scanType: this.config.scanType,
                     duration,
                     nmapVersion: version,
-                    outputFile: xmlOutputPath
-                }
+                    outputFile: xmlOutputPath,
+                },
             };
 
-            logger.info(`Nmap scan completed. Found ${vulnerabilities.length} findings in ${duration}ms`);
+            logger.info(
+                `Nmap scan completed. Found ${vulnerabilities.length} findings in ${duration}ms`
+            );
             return result;
-
         } catch (error) {
             logger.error(`Nmap scan failed: ${error}`);
             throw error;
@@ -190,7 +193,8 @@ export class NmapScanner {
 
                     if (state === 'open') {
                         const serviceName = service?.$?.name || 'unknown';
-                        const serviceVersion = service?.$?.version || service?.$?.product || 'unknown';
+                        const serviceVersion =
+                            service?.$?.version || service?.$?.product || 'unknown';
                         const extraInfo = service?.$?.extrainfo || '';
 
                         // Determine severity based on port and service
@@ -206,18 +210,23 @@ export class NmapScanner {
                             packageName: serviceName,
                             version: serviceVersion,
                             fixedIn: [],
-                            description: this.generateDescription(portId, serviceName, serviceVersion, extraInfo, isRisky),
+                            description: this.generateDescription(
+                                portId,
+                                serviceName,
+                                serviceVersion,
+                                extraInfo,
+                                isRisky
+                            ),
                             targetHost: address,
                             targetPort: parseInt(portId),
                             service: serviceName,
                             serviceVersion,
                             exploitAvailable: false,
-                            findings: this.extractNseScriptResults(port)
+                            findings: this.extractNseScriptResults(port),
                         });
                     }
                 }
             }
-
         } catch (error) {
             logger.error(`Failed to parse Nmap XML: ${error}`);
             throw error;
@@ -249,10 +258,20 @@ export class NmapScanner {
     /**
      * Determine severity based on port number and service
      */
-    private determineSeverity(port: number, service: string): 'critical' | 'high' | 'medium' | 'low' {
+    private determineSeverity(
+        port: number,
+        service: string
+    ): 'critical' | 'high' | 'medium' | 'low' {
         // Critical: Database ports, remote admin
         const criticalPorts = [1433, 3306, 5432, 5984, 6379, 27017, 27018, 9200, 9300];
-        const criticalServices = ['mysql', 'postgresql', 'mongodb', 'redis', 'couchdb', 'elasticsearch'];
+        const criticalServices = [
+            'mysql',
+            'postgresql',
+            'mongodb',
+            'redis',
+            'couchdb',
+            'elasticsearch',
+        ];
 
         if (criticalPorts.includes(port) || criticalServices.includes(service.toLowerCase())) {
             return 'critical';
@@ -288,7 +307,13 @@ export class NmapScanner {
     /**
      * Generate human-readable description
      */
-    private generateDescription(port: string, service: string, version: string, extraInfo: string, isRisky: boolean): string {
+    private generateDescription(
+        port: string,
+        service: string,
+        version: string,
+        extraInfo: string,
+        isRisky: boolean
+    ): string {
         let description = `Port ${port} is open and running ${service}`;
 
         if (version && version !== 'unknown') {
@@ -300,7 +325,8 @@ export class NmapScanner {
         }
 
         if (isRisky) {
-            description += '\n\n⚠️  This is a high-risk service that should typically not be exposed to the internet.';
+            description +=
+                '\n\n⚠️  This is a high-risk service that should typically not be exposed to the internet.';
         }
 
         return description;
@@ -312,10 +338,10 @@ export class NmapScanner {
     private calculateSummary(vulnerabilities: Vulnerability[]) {
         return {
             total: vulnerabilities.length,
-            critical: vulnerabilities.filter(v => v.severity === 'critical').length,
-            high: vulnerabilities.filter(v => v.severity === 'high').length,
-            medium: vulnerabilities.filter(v => v.severity === 'medium').length,
-            low: vulnerabilities.filter(v => v.severity === 'low').length
+            critical: vulnerabilities.filter((v) => v.severity === 'critical').length,
+            high: vulnerabilities.filter((v) => v.severity === 'high').length,
+            medium: vulnerabilities.filter((v) => v.severity === 'medium').length,
+            low: vulnerabilities.filter((v) => v.severity === 'low').length,
         };
     }
 }
