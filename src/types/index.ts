@@ -1,11 +1,11 @@
 /**
  * Warden Shared Types
- * 
+ *
  * Centralized type definitions used across the application.
  */
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
-export type ScannerType = 'snyk' | 'npm-audit' | 'nmap' | 'metasploit';
+export type ScannerType = 'snyk' | 'npm-audit' | 'nmap' | 'metasploit' | 'mock';
 export type ScanMode = 'sast' | 'dast';
 
 export interface Vulnerability {
@@ -113,11 +113,24 @@ export interface ValidateOptions {
 }
 
 // Agent Types
+
+/**
+ * Structured data for applying a package fix.
+ * Replaces regex-parsed strings in the fix pipeline.
+ */
+export interface FixInstruction {
+    packageName: string;
+    currentVersion: string;
+    targetVersion: string;
+}
+
 export interface Diagnosis {
     vulnerabilityId: string;
     description: string;
     suggestedFix: string;
     filesToModify: string[];
+    /** Structured fix data; present for SAST auto-fixable vulnerabilities */
+    fixInstruction?: FixInstruction;
 }
 
 export interface PrConfig {
@@ -166,4 +179,19 @@ export interface DastConfig {
     nmap: NmapConfig;
     metasploit: MetasploitConfig;
     safety: SafetyConfig;
+}
+
+/**
+ * Top-level options passed to the runWarden orchestration function.
+ */
+export interface WardenOptions {
+    targetPath: string;
+    repository?: string;
+    dryRun: boolean;
+    scanner: 'snyk' | 'npm-audit' | 'all';
+    minSeverity: Severity;
+    maxFixes: number;
+    verbose: boolean;
+    scanMode?: ScanMode;
+    dastTarget?: string;
 }

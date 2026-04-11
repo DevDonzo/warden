@@ -54,11 +54,28 @@ program
             // Determine target path
             let targetPath = process.cwd();
             let isRemote = false;
+            let sanitizedRepo: string | undefined;
 
             if (repository) {
                 if (repository.startsWith('http') || repository.includes('github.com')) {
                     isRemote = true;
-                    logger.info(`Target: Remote repository ${repository}`);
+                    
+                    // Validate and sanitize repository URL
+                    const repoValidation = validator.validateRepositoryUrl(repository);
+                    if (!repoValidation.valid) {
+                        logger.error('Invalid repository URL');
+                        validator.printValidationResults(repoValidation);
+                        process.exit(1);
+                    }
+                    
+                    const sanitized = validator.sanitizeRepositoryUrl(repository);
+                    if (!sanitized) {
+                        logger.error(`Failed to sanitize repository URL: ${repository}`);
+                        process.exit(1);
+                    }
+                    
+                    sanitizedRepo = sanitized;
+                    logger.info(`Target: Remote repository ${sanitizedRepo}`);
                 } else {
                     targetPath = path.resolve(repository);
                     logger.info(`Target: Local path ${targetPath}`);
@@ -83,7 +100,7 @@ program
             const { runWarden } = await import('./orchestrator');
             await runWarden({
                 targetPath,
-                repository: isRemote ? repository : undefined,
+                repository: isRemote ? sanitizedRepo : undefined,
                 dryRun: options.dryRun || false,
                 scanner: options.scanner,
                 minSeverity: options.severity,

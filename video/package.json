@@ -1,0 +1,23 @@
+{
+  "name": "warden-linkedin-video",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts WardenLinkedInCinematic out/warden-linkedin-cinematic.mp4",
+    "render:quick": "remotion render src/index.ts WardenLinkedInCinematic out/warden-linkedin-preview.mp4 --concurrency=2 --jpeg-quality=80",
+    "still:hook": "remotion still src/index.ts WardenLinkedInCinematic out/hook-frame.png --frame=45",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.9.3"
+  }
+}
