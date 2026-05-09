@@ -254,3 +254,105 @@ export class NpmFixer implements IFixer {
         }
     }
 }
+
+export class PipFixer implements IFixer {
+    readonly name = 'python';
+
+    private git: GitManager;
+
+    constructor() {
+        this.git = new GitManager();
+    }
+
+    canFix(instruction: FixInstruction): boolean {
+        if (instruction.ecosystem !== 'python') {
+            return false;
+        }
+
+        const requirementsPath = path.resolve(process.cwd(), instruction.manifestPath || 'requirements.txt');
+        if (!fs.existsSync(requirementsPath)) {
+            return false;
+        }
+
+        const content = fs.readFileSync(requirementsPath, 'utf-8');
+        return content.split('\n').some(line => line.trim().startsWith(`${instruction.packageName}==`));
+    }
+
+    async applyFix(
+        instruction: FixInstruction,
+        vulnerabilityId: string,
+        branchPrefix: string = DEFAULT_BRANCH_PREFIX
+    ): Promise<boolean> {
+        const requirementsPath = path.resolve(process.cwd(), instruction.manifestPath || 'requirements.txt');
+        let branchName = `${branchPrefix}-${instruction.packageName}`;
+        const branchValidation = validator.validateBranchName(branchName);
+
+        if (!branchValidation.valid) {
+            branchName = validator.sanitizeBranchName(instruction.packageName, branchPrefix);
+        }
+
+        try {
+            if (await this.git.hasUncommittedChanges()) {
+                logger.error(
+                    'Refusing to auto-fix with uncommitted changes present. Commit or stash changes first.'
+                );
+                return false;
+            }
+
+            await this.git.checkoutBranch(branchName);
+
+            if (!fs.existsSync(requirementsPath)) {
+                throw new Error('requirements.txt not found');
+            }
+
+            const originalContent = fs.readFileSync(requirementsPath, 'utf-8');
+            const updatedContent = originalContent
+                .split('\n')
+                .map(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith(`${instruction.packageName}==`)) {
+                        return line;
+                    }
+
+                    return `${instruction.packageName}==${instruction.targetVersion}`;
+                })
+                .join('\n');
+
+            if (updatedContent === originalContent) {
+                logger.error(`Package "${instruction.packageName}" not found in requirements.txt`);
+                return false;
+            }
+
+            fs.writeFileSync(requirementsPath, updatedContent, 'utf-8');
+
+            if (this.hasPytestSuite()) {
+                try {
+                    await runCommand('python3 -m pytest', { log: false });
+                    logger.success('Python verification passed!');
+                } catch {
+                    logger.error('Python verification failed! Restoring modified files...');
+                    fs.writeFileSync(requirementsPath, originalContent, 'utf-8');
+                    return false;
+                }
+            } else {
+                logger.warn('No pytest suite detected. Skipping Python verification.');
+            }
+
+            await this.git.stageAll();
+            await this.git.commit(`fix(${instruction.packageName}): resolve ${vulnerabilityId}`);
+            logger.success(`Fix committed on branch "${branchName}"`);
+            return true;
+        } catch (error: any) {
+            logger.error('PipFixer encountered an error:', error);
+            return false;
+        }
+    }
+
+    private hasPytestSuite(): boolean {
+        return (
+            fs.existsSync(path.resolve(process.cwd(), 'pytest.ini')) ||
+            fs.existsSync(path.resolve(process.cwd(), 'tests')) ||
+            fs.existsSync(path.resolve(process.cwd(), 'tox.ini'))
+        );
+    }
+}

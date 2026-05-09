@@ -31,7 +31,7 @@ program
     .option('--json', 'Output results as JSON')
     .option('--dry-run', 'Preview changes without creating branches or PRs')
     .option('--skip-validation', 'Skip pre-flight validation checks')
-    .option('--scanner <type>', 'Scanner to use: snyk, npm-audit, or all', 'snyk')
+    .option('--scanner <type>', 'Scanner to use: snyk, npm-audit, pip-audit, or all', 'snyk')
     .option('--severity <level>', 'Minimum severity to fix: low, medium, high, critical', 'high')
     .option('--max-fixes <number>', 'Maximum number of fixes to apply', '1')
     .option('--ci', 'Enable CI policy gates and non-zero exit codes on policy failure')

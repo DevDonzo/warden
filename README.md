@@ -1,5 +1,13 @@
 # Warden
 
+<p align="center">
+  <img src="./assets/warden-mark.svg" alt="Warden logo" width="180" />
+</p>
+
+<p align="center">
+  <strong>The operator-grade security agent for dependency risk, remediation, and CI policy.</strong>
+</p>
+
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![npm version](https://img.shields.io/npm/v/@devdonzo/warden?style=for-the-badge)](https://www.npmjs.com/package/@devdonzo/warden)
 [![CI](https://img.shields.io/github/actions/workflow/status/DevDonzo/warden/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/DevDonzo/warden/actions/workflows/ci.yml)
@@ -7,11 +15,12 @@
 
 > Autonomous security remediation with workflow memory, policy gates, and pull-request automation.
 
-Warden is a security orchestration CLI for Node.js repositories and infrastructure targets. It scans dependencies or network surfaces, prioritizes what matters, attempts safe automated fixes, produces operator-grade reports, remembers recurring hotspots, and can enforce CI policy when risk exceeds your threshold.
+Warden is a security orchestration CLI for Node.js repositories, Python requirements-based projects, and infrastructure targets. It scans dependencies or network surfaces, prioritizes what matters, attempts safe automated fixes, produces operator-grade reports, remembers recurring hotspots, and can enforce CI policy when risk exceeds your threshold.
 
 ## What Warden Does Now
 
 - **SAST and DAST workflows**: Dependency scanning plus infrastructure advisory generation.
+- **Node and Python support**: `npm-audit`, `pip-audit`, and safer remediation flows for `package.json` and `requirements.txt`.
 - **Agentic remediation planning**: Every run now produces posture, risk score, immediate actions, and follow-up guidance.
 - **Safe auto-fix execution**: Fixes respect severity thresholds, fix limits, dirty-repo safeguards, and approval gates.
 - **PR automation**: Warden can create and push remediation branches and open GitHub PRs when credentials are configured.
@@ -45,6 +54,12 @@ Run a local dry-run dependency scan:
 
 ```bash
 warden scan . --dry-run --scanner npm-audit --severity high --max-fixes 2
+```
+
+Run against a Python `requirements.txt` project:
+
+```bash
+warden scan . --scanner pip-audit --severity high
 ```
 
 Run in CI mode with policy gates:
@@ -81,7 +96,7 @@ warden config --create
 ## Important Flags
 
 ```bash
---scanner <snyk|npm-audit|all>
+--scanner <snyk|npm-audit|pip-audit|all>
 --severity <low|medium|high|critical>
 --max-fixes <n>
 --dry-run
@@ -209,7 +224,7 @@ The suite now covers:
 
 ## Release Status
 
-Current package version: `1.4.0`
+Current package version: `1.6.0`
 
 This version introduces:
 
@@ -218,6 +233,8 @@ This version introduces:
 - fixture-backed workflow integration tests
 - recurring vulnerability hotspot memory
 - safer npm remediation and PR flow hardening
+- Python requirements scanning with `pip-audit`
+- GitHub Actions bootstrap generation with `warden bootstrap-ci`
 
 ## Roadmap
 

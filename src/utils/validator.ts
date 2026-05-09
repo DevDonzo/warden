@@ -9,6 +9,8 @@ export interface ValidationResult {
     warnings: string[];
 }
 
+export type ProjectType = 'node' | 'python' | 'unknown';
+
 export class Validator {
     /**
      * Create a new validation result
@@ -327,8 +329,15 @@ export class Validator {
 
         // Check for npm
         if (!this.commandExists('npm')) {
-            result.errors.push('npm is not installed or not in PATH');
-            result.valid = false;
+            result.warnings.push('npm is not installed or not in PATH');
+        }
+
+        if (!this.commandExists('python3')) {
+            result.warnings.push('python3 is not installed or not in PATH');
+        }
+
+        if (!this.commandExists('pip-audit')) {
+            result.warnings.push('pip-audit is not installed. Install with: python3 -m pip install pip-audit');
         }
 
         // Check for Snyk (optional but recommended)
@@ -391,35 +400,76 @@ export class Validator {
     }
 
     /**
-     * Validate package.json exists
+     * Detect primary project type from local manifests
      */
-    validatePackageJson(targetPath: string = process.cwd()): ValidationResult {
+    detectProjectType(targetPath: string = process.cwd()): ProjectType {
+        if (fs.existsSync(path.join(targetPath, 'package.json'))) {
+            return 'node';
+        }
+
+        if (
+            fs.existsSync(path.join(targetPath, 'requirements.txt')) ||
+            fs.existsSync(path.join(targetPath, 'pyproject.toml'))
+        ) {
+            return 'python';
+        }
+
+        return 'unknown';
+    }
+
+    /**
+     * Validate supported project manifests
+     */
+    validateProjectManifest(targetPath: string = process.cwd()): ValidationResult {
         const result = this.createResult();
 
-        const packageJsonPath = path.join(targetPath, 'package.json');
+        const projectType = this.detectProjectType(targetPath);
+        if (projectType === 'node') {
+            const packageJsonPath = path.join(targetPath, 'package.json');
 
-        if (!fs.existsSync(packageJsonPath)) {
-            result.errors.push('package.json not found. This tool requires a Node.js project.');
-            result.valid = false;
+            try {
+                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+                if (!packageJson.dependencies && !packageJson.devDependencies) {
+                    result.warnings.push('No dependencies found in package.json');
+                }
+
+                if (!packageJson.scripts || !packageJson.scripts.test) {
+                    result.warnings.push('No test script found in package.json. Verification will be skipped.');
+                }
+            } catch (error: any) {
+                result.errors.push(`Invalid package.json: ${error.message}`);
+                result.valid = false;
+            }
+
             return result;
         }
 
-        try {
-            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+        if (projectType === 'python') {
+            const requirementsPath = path.join(targetPath, 'requirements.txt');
+            const pyprojectPath = path.join(targetPath, 'pyproject.toml');
 
-            if (!packageJson.dependencies && !packageJson.devDependencies) {
-                result.warnings.push('No dependencies found in package.json');
+            if (fs.existsSync(requirementsPath)) {
+                const content = fs.readFileSync(requirementsPath, 'utf-8');
+                if (!content.trim()) {
+                    result.warnings.push('requirements.txt is empty');
+                }
+                if (!fs.existsSync(path.join(targetPath, 'tests'))) {
+                    result.warnings.push('No tests/ directory found. Python verification may be skipped.');
+                }
+            } else if (fs.existsSync(pyprojectPath)) {
+                result.warnings.push(
+                    'pyproject.toml detected, but auto-remediation currently requires requirements.txt for Python projects.'
+                );
             }
 
-            if (!packageJson.scripts || !packageJson.scripts.test) {
-                result.warnings.push('No test script found in package.json. Verification will be skipped.');
-            }
-
-        } catch (error: any) {
-            result.errors.push(`Invalid package.json: ${error.message}`);
-            result.valid = false;
+            return result;
         }
 
+        result.errors.push(
+            'No supported manifest found. Warden currently supports package.json or requirements.txt-based projects.'
+        );
+        result.valid = false;
         return result;
     }
 
@@ -433,7 +483,7 @@ export class Validator {
             this.validateEnvironment(),
             this.validateDependencies(),
             this.validateGitRepository(targetPath),
-            this.validatePackageJson(targetPath)
+            this.validateProjectManifest(targetPath)
         ];
 
         const combined = this.createResult();

@@ -13,6 +13,7 @@ import { IWorkflow } from './index';
 import { Diagnosis, ScanResult, Severity, WardenOptions, WardenRunResult } from '../types';
 import { SnykScanner } from '../agents/watchman/snyk';
 import { NpmAuditScanner } from '../agents/watchman/npm-audit';
+import { PipAuditScanner } from '../agents/watchman/pip-audit';
 import { ProgressReporter } from '../utils/progress';
 import { logger } from '../utils/logger';
 import { getConfig } from '../utils/config';
@@ -57,6 +58,9 @@ export class SastWorkflow implements IWorkflow {
                 const workspace = await this.prepareWorkspace(options.repository);
                 process.chdir(workspace);
                 result.targetPath = workspace;
+                logger.info(`Working directory: ${process.cwd()}`);
+            } else if (options.targetPath !== process.cwd()) {
+                process.chdir(options.targetPath);
                 logger.info(`Working directory: ${process.cwd()}`);
             }
 
@@ -141,12 +145,32 @@ export class SastWorkflow implements IWorkflow {
     }
 
     private async runSecurityScan(options: WardenOptions): Promise<ScanResult> {
+        const projectType = validator.detectProjectType(process.cwd());
         const snykScanner = new SnykScanner();
         const npmAuditScanner = new NpmAuditScanner();
+        const pipAuditScanner = new PipAuditScanner();
+
+        if (options.scanner === 'pip-audit') {
+            logger.info('Using pip-audit scanner (user specified)');
+            return pipAuditScanner.scan() as unknown as Promise<ScanResult>;
+        }
 
         if (options.scanner === 'npm-audit') {
             logger.info('Using npm-audit scanner (user specified)');
             return npmAuditScanner.scan() as unknown as Promise<ScanResult>;
+        }
+
+        if (projectType === 'python') {
+            try {
+                return await (pipAuditScanner.scan() as unknown as Promise<ScanResult>);
+            } catch (pipAuditError: any) {
+                logger.warn(`pip-audit scan failed: ${pipAuditError.message}`);
+                if (options.scanner === 'all' || options.scanner === 'snyk') {
+                    logger.info('Falling back to Snyk scanner...');
+                    return await (snykScanner.test() as unknown as Promise<ScanResult>);
+                }
+                throw pipAuditError;
+            }
         }
 
         if (options.scanner === 'snyk' || options.scanner === 'all') {

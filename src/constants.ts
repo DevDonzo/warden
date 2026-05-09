@@ -40,8 +40,8 @@ export const SEVERITY_PRIORITY: Record<SeverityLevel, number> = {
 };
 
 // Scanner types
-export type ScannerType = 'snyk' | 'npm-audit' | 'all';
-export const SCANNER_TYPES: readonly ScannerType[] = ['snyk', 'npm-audit', 'all'];
+export type ScannerType = 'snyk' | 'npm-audit' | 'pip-audit' | 'all';
+export const SCANNER_TYPES: readonly ScannerType[] = ['snyk', 'npm-audit', 'pip-audit', 'all'];
 
 // Logging
 export const LOG_LEVELS = ['error', 'warn', 'info', 'debug'] as const;

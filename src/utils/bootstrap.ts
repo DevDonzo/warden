@@ -5,7 +5,7 @@ import { ConfigManager } from './config';
 export interface BootstrapCiOptions {
     targetDir?: string;
     workflowName?: string;
-    scanner?: 'snyk' | 'npm-audit' | 'all';
+    scanner?: 'snyk' | 'npm-audit' | 'pip-audit' | 'all';
     severity?: 'low' | 'medium' | 'high' | 'critical';
     createConfig?: boolean;
     force?: boolean;
@@ -63,7 +63,7 @@ export function bootstrapGitHubActions(options: BootstrapCiOptions = {}): Bootst
 }
 
 export function renderGitHubActionsWorkflow(options: {
-    scanner: 'snyk' | 'npm-audit' | 'all';
+    scanner: 'snyk' | 'npm-audit' | 'pip-audit' | 'all';
     severity: 'low' | 'medium' | 'high' | 'critical';
 }): string {
     return `name: Warden Security Patrol

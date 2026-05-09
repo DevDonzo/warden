@@ -5,7 +5,28 @@ All notable changes to Warden will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.0] - 2026-05-09
+## [1.6.0] - 2026-05-09
+
+### ✨ Added
+
+- **Python Support (requirements.txt-first)**:
+  - `pip-audit` scanner integration
+  - Python manifest validation support
+  - Python remediation path for exact `requirements.txt` pins
+- **Branding Refresh**:
+  - New README visual identity and embedded logo asset
+
+### 🔧 Changed
+
+- **README**:
+  - Updated to reflect Python support, CI bootstrap, policy gates, memory, and artifacts
+  - Added embedded branding asset for GitHub and npm presentation
+- **Bootstrap Generator**:
+  - `bootstrap-ci` now supports `pip-audit` scanner selection
+
+---
+
+## [1.5.0] - 2026-05-09
 
 ### ✨ Added
 

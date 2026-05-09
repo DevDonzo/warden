@@ -1,5 +1,7 @@
 import { validator } from '../src/utils/validator';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
 
 describe('Validator', () => {
     describe('validateEnvironment', () => {
@@ -58,21 +60,31 @@ describe('Validator', () => {
         });
     });
 
-    describe('validatePackageJson', () => {
+    describe('validateProjectManifest', () => {
         it('should validate package.json exists in project root', () => {
             const projectRoot = path.resolve(__dirname, '..');
-            const result = validator.validatePackageJson(projectRoot);
+            const result = validator.validateProjectManifest(projectRoot);
 
             expect(result.valid).toBe(true);
             expect(result.errors.length).toBe(0);
         });
 
-        it('should fail when package.json does not exist', () => {
+        it('should validate a Python requirements project', () => {
+            const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'warden-python-'));
+            fs.writeFileSync(path.join(tempDir, 'requirements.txt'), 'jinja2==2.11.2\n', 'utf-8');
+            const result = validator.validateProjectManifest(tempDir);
+
+            expect(result.valid).toBe(true);
+            expect(result.errors.length).toBe(0);
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+
+        it('should fail when no supported manifest exists', () => {
             const nonExistentPath = '/tmp/nonexistent-path-12345';
-            const result = validator.validatePackageJson(nonExistentPath);
+            const result = validator.validateProjectManifest(nonExistentPath);
 
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('package.json not found'))).toBe(true);
+            expect(result.errors.some(e => e.includes('No supported manifest found'))).toBe(true);
         });
     });
 

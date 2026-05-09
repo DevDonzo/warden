@@ -5,8 +5,9 @@
  */
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
-export type ScannerType = 'snyk' | 'npm-audit' | 'nmap' | 'metasploit' | 'mock';
+export type ScannerType = 'snyk' | 'npm-audit' | 'pip-audit' | 'nmap' | 'metasploit' | 'mock';
 export type ScanMode = 'sast' | 'dast';
+export type Ecosystem = 'npm' | 'python';
 
 export interface Vulnerability {
     id: string;
@@ -19,6 +20,7 @@ export interface Vulnerability {
     cvssScore?: number;
     cwe?: string[];
     references?: string[];
+    ecosystem?: Ecosystem;
     // DAST-specific fields
     targetHost?: string;
     targetPort?: number;
@@ -119,9 +121,11 @@ export interface ValidateOptions {
  * Replaces regex-parsed strings in the fix pipeline.
  */
 export interface FixInstruction {
+    ecosystem: Ecosystem;
     packageName: string;
     currentVersion: string;
     targetVersion: string;
+    manifestPath?: string;
 }
 
 export interface Diagnosis {
@@ -188,7 +192,7 @@ export interface WardenOptions {
     targetPath: string;
     repository?: string;
     dryRun: boolean;
-    scanner: 'snyk' | 'npm-audit' | 'all';
+    scanner: 'snyk' | 'npm-audit' | 'pip-audit' | 'all';
     minSeverity: Severity;
     maxFixes: number;
     verbose: boolean;
