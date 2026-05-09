@@ -195,3 +195,65 @@ export interface WardenOptions {
     scanMode?: ScanMode;
     dastTarget?: string;
 }
+
+export interface WardenRunResult {
+    mode: ScanMode;
+    targetPath: string;
+    repository?: string;
+    dryRun: boolean;
+    scanResult?: ScanResult;
+    selectedVulnerabilityIds: string[];
+    attemptedFixes: number;
+    appliedFixes: number;
+    branches: string[];
+    pullRequestUrls: string[];
+    advisoryPath?: string;
+    reportPaths?: {
+        markdown?: string;
+        html?: string;
+    };
+    remediationPlan?: RemediationPlan;
+    history?: RunHistorySnapshot;
+    warnings: string[];
+}
+
+export interface RemediationAction {
+    title: string;
+    priority: 'urgent' | 'high' | 'medium' | 'low';
+    rationale: string;
+}
+
+export interface RemediationPlan {
+    riskScore: number;
+    posture: 'critical' | 'elevated' | 'guarded' | 'stable';
+    autoFixableCount: number;
+    manualCount: number;
+    exploitCount: number;
+    immediateActions: RemediationAction[];
+    manualFollowUps: string[];
+    strategicImprovements: string[];
+    summary: string;
+}
+
+export interface RunHistoryEntry {
+    timestamp: string;
+    mode: ScanMode;
+    targetPath: string;
+    repository?: string;
+    totalVulnerabilities: number;
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    appliedFixes: number;
+    attemptedFixes: number;
+    autoFixableCount: number;
+    manualCount: number;
+    riskScore: number;
+}
+
+export interface RunHistorySnapshot {
+    latest: RunHistoryEntry;
+    previous?: RunHistoryEntry;
+    trend: 'improving' | 'worsening' | 'unchanged' | 'first-run';
+}

@@ -28,6 +28,7 @@ export class DiplomatAgent {
         try {
             // Extract owner and repo from git remote
             const { owner, repo } = await this.getRepoInfo();
+            const base = await this.getDefaultBaseBranch();
 
             logger.diplomat(`Opening PR on ${owner}/${repo}...`);
 
@@ -38,7 +39,7 @@ export class DiplomatAgent {
                 title: config.title,
                 body: config.body,
                 head: config.branch,
-                base: 'main', // Default base branch
+                base,
             });
 
             logger.success(`PR created successfully! URL: ${response.data.html_url}`);
@@ -71,6 +72,20 @@ export class DiplomatAgent {
             }
 
             throw error;
+        }
+    }
+
+    private async getDefaultBaseBranch(): Promise<string> {
+        const { execSync } = await import('child_process');
+
+        try {
+            const ref = execSync('git symbolic-ref refs/remotes/origin/HEAD', {
+                encoding: 'utf-8'
+            }).trim();
+            const branch = ref.split('/').pop();
+            return branch || 'main';
+        } catch {
+            return 'main';
         }
     }
 

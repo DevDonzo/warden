@@ -5,7 +5,7 @@
  * logic from the main orchestrator entry point.
  */
 
-import { WardenOptions } from '../types';
+import { WardenOptions, WardenRunResult } from '../types';
 
 /**
  * A Workflow encapsulates all the steps for a particular scan mode
@@ -13,5 +13,5 @@ import { WardenOptions } from '../types';
  * and calls run().
  */
 export interface IWorkflow {
-    run(options: WardenOptions): Promise<void>;
+    run(options: WardenOptions): Promise<WardenRunResult>;
 }

@@ -47,6 +47,10 @@ program
                 logger.setQuiet(true);
             }
 
+            if (options.json && !options.verbose) {
+                logger.setQuiet(true);
+            }
+
             if (!options.json) {
                 logger.header('🛡️  WARDEN | Autonomous Security Orchestrator');
             }
@@ -98,7 +102,7 @@ program
 
             // Import and run the main orchestrator
             const { runWarden } = await import('./orchestrator');
-            await runWarden({
+            const result = await runWarden({
                 targetPath,
                 repository: isRemote ? sanitizedRepo : undefined,
                 dryRun: options.dryRun || false,
@@ -107,6 +111,32 @@ program
                 maxFixes: parseInt(options.maxFixes, 10),
                 verbose: options.verbose || false
             });
+
+            if (options.json) {
+                console.log(JSON.stringify(result, null, 2));
+            } else {
+                if (result.remediationPlan) {
+                    logger.section('🧠 Agentic Assessment');
+                    logger.info(`Posture: ${result.remediationPlan.posture}`);
+                    logger.info(`Risk Score: ${result.remediationPlan.riskScore}/100`);
+                    logger.info(result.remediationPlan.summary);
+                }
+
+                if (result.history) {
+                    logger.section('📈 Trend');
+                    logger.info(`Trend: ${result.history.trend}`);
+                }
+
+                if (result.reportPaths?.markdown || result.reportPaths?.html) {
+                    logger.section('📝 Reports');
+                    if (result.reportPaths.markdown) {
+                        logger.info(`Markdown: ${result.reportPaths.markdown}`);
+                    }
+                    if (result.reportPaths.html) {
+                        logger.info(`HTML: ${result.reportPaths.html}`);
+                    }
+                }
+            }
 
         } catch (error: any) {
             logger.error('Fatal error during scan', error);

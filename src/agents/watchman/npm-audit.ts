@@ -1,7 +1,10 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ScanResult, Vulnerability } from './snyk';
 import { logger } from '../../utils/logger';
+import { SCAN_RESULTS_DIR, SCAN_RESULTS_FILE } from '../../constants';
 
 const execAsync = promisify(exec);
 
@@ -15,6 +18,16 @@ const SEVERITY_MAPPING: Record<string, Vulnerability['severity']> = {
 };
 
 export class NpmAuditScanner {
+    private outputDir: string;
+
+    constructor() {
+        const projectRoot = path.resolve(__dirname, '../../../');
+        this.outputDir = path.join(projectRoot, SCAN_RESULTS_DIR);
+
+        if (!fs.existsSync(this.outputDir)) {
+            fs.mkdirSync(this.outputDir, { recursive: true });
+        }
+    }
 
     /**
      * Parse severity string to normalized severity level
@@ -44,13 +57,34 @@ export class NpmAuditScanner {
                 severity,
                 packageName: vuln.name,
                 version: vuln.range || 'unknown',
-                fixedIn: vuln.fixAvailable ? ['npm audit fix'] : [],
-                description: `Dependency path: ${key}`,
+                fixedIn: this.extractFixedVersions(vuln.fixAvailable),
+                description: this.buildDescription(key, vuln),
                 cvssScore: undefined
             });
         }
 
         return vulnerabilities;
+    }
+
+    private extractFixedVersions(fixAvailable: any): string[] {
+        if (!fixAvailable || fixAvailable === true || fixAvailable === false) {
+            return [];
+        }
+
+        if (typeof fixAvailable.version === 'string' && fixAvailable.version.trim().length > 0) {
+            return [fixAvailable.version.trim()];
+        }
+
+        return [];
+    }
+
+    private buildDescription(packageKey: string, vuln: any): string {
+        const directFixVersion = this.extractFixedVersions(vuln.fixAvailable)[0];
+        const fixHint = directFixVersion
+            ? `Direct dependency can be upgraded to ${directFixVersion}.`
+            : 'No direct package.json upgrade is available; manual or transitive remediation may be required.';
+
+        return `Dependency path: ${packageKey}. ${fixHint}`;
     }
 
     async scan(): Promise<ScanResult> {
@@ -104,10 +138,23 @@ export class NpmAuditScanner {
             }
         }
 
-        return {
+        const result = {
             timestamp: new Date().toISOString(),
             vulnerabilities,
             summary
         };
+
+        this.saveScanResults(result);
+        return result;
+    }
+
+    private saveScanResults(result: ScanResult): void {
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        const filepath = path.join(this.outputDir, `scan-${timestamp}.json`);
+        const latestPath = path.join(this.outputDir, SCAN_RESULTS_FILE);
+        const content = JSON.stringify(result, null, 2);
+
+        fs.writeFileSync(filepath, content, { encoding: 'utf-8' });
+        fs.writeFileSync(latestPath, content, { encoding: 'utf-8' });
     }
 }

@@ -3,13 +3,6 @@
  *
  * Encapsulates all Static Application Security Testing (SAST) orchestration
  * logic as a dedicated strategy class, implementing the IWorkflow contract.
- *
- * Responsibilities:
- *  - Clone / update remote workspaces (when --repo is supplied)
- *  - Run the appropriate scanner (Snyk → npm-audit fallback)
- *  - Drive the Engineer agent to diagnose and patch vulnerabilities
- *  - Drive the Diplomat agent to open a Pull Request with the fix
- *  - Fall back to DEMO MODE with mock data when all scanners fail locally
  */
 
 import * as fs from 'fs';
@@ -17,13 +10,20 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 
 import { IWorkflow } from './index';
-import { WardenOptions } from '../types';
-import { SnykScanner, ScanResult } from '../agents/watchman/snyk';
+import { Diagnosis, ScanResult, Severity, WardenOptions, WardenRunResult } from '../types';
+import { SnykScanner } from '../agents/watchman/snyk';
 import { NpmAuditScanner } from '../agents/watchman/npm-audit';
 import { ProgressReporter } from '../utils/progress';
 import { logger } from '../utils/logger';
 import { getConfig } from '../utils/config';
-import { WORKSPACES_DIR, SCAN_RESULTS_DIR, SCAN_RESULTS_FILE } from '../constants';
+import { DEFAULT_BRANCH_PREFIX, SCAN_RESULTS_DIR, SCAN_RESULTS_FILE, WORKSPACES_DIR } from '../constants';
+import { selectVulnerabilitiesForFix } from '../utils/scan-results';
+import { validator } from '../utils/validator';
+
+type SastFixSummary = Pick<
+    WardenRunResult,
+    'selectedVulnerabilityIds' | 'attemptedFixes' | 'appliedFixes' | 'branches' | 'pullRequestUrls' | 'warnings'
+>;
 
 export class SastWorkflow implements IWorkflow {
     private progress: ProgressReporter;
@@ -33,22 +33,31 @@ export class SastWorkflow implements IWorkflow {
         this.progress = new ProgressReporter(verbose);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // IWorkflow entry point
-    // ─────────────────────────────────────────────────────────────────────────
-
-    async run(options: WardenOptions): Promise<void> {
+    async run(options: WardenOptions): Promise<WardenRunResult> {
         const originalCwd = process.cwd();
+        const result: WardenRunResult = {
+            mode: 'sast',
+            targetPath: options.targetPath,
+            repository: options.repository,
+            dryRun: options.dryRun,
+            scanResult: undefined,
+            selectedVulnerabilityIds: [],
+            attemptedFixes: 0,
+            appliedFixes: 0,
+            branches: [],
+            pullRequestUrls: [],
+            advisoryPath: undefined,
+            warnings: []
+        };
 
         try {
-            // ── 1. Prepare workspace (remote repo mode) ───────────────────────
             if (options.repository) {
                 const workspace = await this.prepareWorkspace(options.repository);
                 process.chdir(workspace);
+                result.targetPath = workspace;
                 logger.info(`Working directory: ${process.cwd()}`);
             }
 
-            // ── 2. Run security scan ──────────────────────────────────────────
             this.progress.addStep('scan', 'Security Scan');
             this.progress.startStep('scan', 'Running security scan...');
 
@@ -56,62 +65,52 @@ export class SastWorkflow implements IWorkflow {
 
             try {
                 const scanResult = await this.runSecurityScan(options);
+                result.scanResult = scanResult;
                 this.progress.succeedStep('scan', 'Security scan completed');
+                snykUtils.printSummary(scanResult as any);
 
-                snykUtils.printSummary(scanResult);
-
-                // ── 3. Orchestrate fix ────────────────────────────────────────
-                await this.orchestrateFix(scanResult, options);
+                const fixSummary = await this.orchestrateFix(scanResult, options);
+                Object.assign(result, fixSummary);
 
                 logger.header('✅ Patrol Session Completed Successfully');
             } catch (scanError: any) {
                 this.progress.failStep('scan', 'Security scan failed');
                 logger.error('Scanner execution failed', scanError);
 
-                // Only fall back to demo mode for local repos when ALL scanners fail
-                if (!options.repository) {
-                    logger.warn('All scanners failed. Falling back to DEMO MODE with mock data...');
-
-                    const { MockScanner } = await import('../scanners/mock-scanner');
-                    const mockScanner = new MockScanner();
-                    const scanResult = await mockScanner.scan();
-
-                    // Persist mock results so the Engineer agent can read them
-                    const outputDir = path.resolve(process.cwd(), SCAN_RESULTS_DIR);
-                    if (!fs.existsSync(outputDir)) {
-                        fs.mkdirSync(outputDir, { recursive: true });
-                    }
-                    fs.writeFileSync(
-                        path.join(outputDir, SCAN_RESULTS_FILE),
-                        JSON.stringify(scanResult, null, 2)
-                    );
-
-                    snykUtils.printSummary(scanResult as any);
-                    await this.orchestrateFix(scanResult as any, options);
-
-                    logger.header('✅ Session Completed (Demo Mode)');
-                } else {
-                    // Remote repo scans must not silently degrade
+                if (options.repository) {
                     throw scanError;
                 }
+
+                logger.warn('All scanners failed. Falling back to DEMO MODE with mock data...');
+
+                const { MockScanner } = await import('../scanners/mock-scanner');
+                const mockScanner = new MockScanner();
+                const scanResult = await mockScanner.scan();
+                result.scanResult = scanResult as any;
+                result.warnings.push('All configured scanners failed; demo mode used mock data.');
+
+                const outputDir = path.resolve(process.cwd(), SCAN_RESULTS_DIR);
+                if (!fs.existsSync(outputDir)) {
+                    fs.mkdirSync(outputDir, { recursive: true });
+                }
+                fs.writeFileSync(
+                    path.join(outputDir, SCAN_RESULTS_FILE),
+                    JSON.stringify(scanResult, null, 2)
+                );
+
+                snykUtils.printSummary(scanResult as any);
+                const fixSummary = await this.orchestrateFix(scanResult as any, options);
+                Object.assign(result, fixSummary);
+
+                logger.header('✅ Session Completed (Demo Mode)');
             }
         } finally {
-            // Always restore the original working directory
             process.chdir(originalCwd);
         }
+
+        return result;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Private helpers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Clone a remote repository into the local workspaces directory, or pull
-     * the latest changes if the workspace already exists.
-     *
-     * @param repoUrl  Full git URL (https or ssh) of the target repository.
-     * @returns        Absolute path to the ready workspace directory.
-     */
     private async prepareWorkspace(repoUrl: string): Promise<string> {
         this.progress.addStep('workspace', 'Prepare Workspace');
         this.progress.startStep('workspace', 'Preparing workspace...');
@@ -128,9 +127,7 @@ export class SastWorkflow implements IWorkflow {
                 this.progress.updateStep('workspace', `Cloning ${repoName}...`);
                 logger.debug(`Cloning ${repoUrl} into workspaces/${repoName}...`);
                 fs.mkdirSync(path.dirname(workspacePath), { recursive: true });
-                execSync(`git clone ${repoUrl} ${workspacePath}`, {
-                    stdio: 'pipe',
-                });
+                execSync(`git clone ${repoUrl} ${workspacePath}`, { stdio: 'pipe' });
             }
 
             this.progress.succeedStep('workspace', `Workspace ready: ${workspacePath}`);
@@ -141,34 +138,24 @@ export class SastWorkflow implements IWorkflow {
         }
     }
 
-    /**
-     * Run the appropriate security scanner, with an automatic fallback chain:
-     *   npm-audit (explicit) → done
-     *   snyk | all           → try snyk → fall back to npm-audit on failure
-     *   default              → try snyk → fall back to npm-audit on failure
-     *
-     * @throws When every scanner in the chain fails.
-     */
     private async runSecurityScan(options: WardenOptions): Promise<ScanResult> {
         const snykScanner = new SnykScanner();
         const npmAuditScanner = new NpmAuditScanner();
 
-        // Explicit npm-audit request — no fallback needed
         if (options.scanner === 'npm-audit') {
             logger.info('Using npm-audit scanner (user specified)');
-            return await npmAuditScanner.scan();
+            return npmAuditScanner.scan() as unknown as Promise<ScanResult>;
         }
 
-        // Snyk (or all) — try Snyk first, fall through to npm-audit
         if (options.scanner === 'snyk' || options.scanner === 'all') {
             try {
-                return await snykScanner.test();
+                return await (snykScanner.test() as unknown as Promise<ScanResult>);
             } catch (snykError: any) {
                 logger.warn(`Snyk scan failed: ${snykError.message}`);
                 logger.info('Falling back to npm-audit scanner...');
 
                 try {
-                    const result = await npmAuditScanner.scan();
+                    const result = await (npmAuditScanner.scan() as unknown as Promise<ScanResult>);
                     logger.success('npm-audit fallback scan completed');
                     return result;
                 } catch (npmError: any) {
@@ -178,94 +165,140 @@ export class SastWorkflow implements IWorkflow {
             }
         }
 
-        // Default path: Snyk with npm-audit fallback
         try {
-            return await snykScanner.test();
+            return await (snykScanner.test() as unknown as Promise<ScanResult>);
         } catch {
-            return await npmAuditScanner.scan();
+            return npmAuditScanner.scan() as unknown as Promise<ScanResult>;
         }
     }
 
-    /**
-     * Drive the Engineer agent to diagnose the top vulnerability and apply a
-     * fix, then ask the Diplomat agent to open a Pull Request.
-     *
-     * In dry-run mode the proposed fix is logged but nothing is changed on disk
-     * or in the remote repository.
-     */
-    private async orchestrateFix(scanResult: any, options: WardenOptions): Promise<void> {
-        const snyk = new SnykScanner();
-        const highPriority = snyk.filterHighPriority(scanResult);
+    private async orchestrateFix(scanResult: ScanResult, options: WardenOptions): Promise<SastFixSummary> {
+        const selected = selectVulnerabilitiesForFix(
+            scanResult.vulnerabilities,
+            options.minSeverity as Severity,
+            options.maxFixes
+        );
 
-        if (highPriority.length === 0) {
-            logger.success('Clean Audit: No high-priority vulnerabilities identified.');
-            return;
+        if (selected.length === 0) {
+            logger.success(`No vulnerabilities met the minimum severity threshold (${options.minSeverity}).`);
+            return {
+                selectedVulnerabilityIds: [],
+                attemptedFixes: 0,
+                appliedFixes: 0,
+                branches: [],
+                pullRequestUrls: [],
+                warnings: []
+            };
         }
 
-        logger.warn(`Identified ${highPriority.length} high-priority vulnerabilities.`);
+        logger.warn(
+            `Selected ${selected.length} vulnerability(ies) at or above ${options.minSeverity} severity.`
+        );
 
-        const fixCount = Math.min(highPriority.length, options.maxFixes);
-        logger.info(`Will attempt to fix ${fixCount} vulnerability(ies)`);
-
-        // ── Engineer Agent ────────────────────────────────────────────────────
         logger.section('🔧 ENGINEER AGENT | Diagnosing & Patching');
 
         const { EngineerAgent } = await import('../agents/engineer');
+        const { DiplomatAgent } = await import('../agents/diplomat');
         const engineer = new EngineerAgent();
+        const diplomat = new DiplomatAgent();
+        const warnings: string[] = [];
+        const branches: string[] = [];
+        const pullRequestUrls: string[] = [];
 
         const resultsPath = path.resolve(process.cwd(), SCAN_RESULTS_DIR, SCAN_RESULTS_FILE);
         const diagnoses = await engineer.diagnose(resultsPath);
+        const diagnosisById = new Map<string, Diagnosis>(
+            diagnoses.map((diagnosis: Diagnosis) => [diagnosis.vulnerabilityId, diagnosis])
+        );
+        const actionableDiagnoses = selected
+            .map(vulnerability => diagnosisById.get(vulnerability.id))
+            .filter((diagnosis): diagnosis is Diagnosis => Boolean(diagnosis));
 
-        if (diagnoses.length === 0) {
+        if (actionableDiagnoses.length === 0) {
             logger.warn('No actionable diagnoses generated.');
-            return;
+            return {
+                selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+                attemptedFixes: 0,
+                appliedFixes: 0,
+                branches: [],
+                pullRequestUrls: [],
+                warnings: ['Selected vulnerabilities could not be mapped to actionable diagnoses.']
+            };
         }
 
-        const topIssue = diagnoses[0];
-
-        // Dry-run: report the proposed fix without making any changes
         if (options.dryRun) {
-            logger.info('DRY RUN MODE: Would apply the following fix:');
-            logger.info(`  Vulnerability: ${topIssue.vulnerabilityId}`);
-            logger.info(`  Description:   ${topIssue.description}`);
-            logger.info(`  Fix:           ${topIssue.suggestedFix}`);
-            logger.info(`  Files:         ${topIssue.filesToModify.join(', ')}`);
-            return;
+            logger.info('DRY RUN MODE: Would apply the following fixes:');
+            actionableDiagnoses.forEach((diagnosis, index) => {
+                logger.info(`  ${index + 1}. Vulnerability: ${diagnosis.vulnerabilityId}`);
+                logger.info(`     Description: ${diagnosis.description}`);
+                logger.info(`     Fix:         ${diagnosis.suggestedFix}`);
+                logger.info(`     Files:       ${diagnosis.filesToModify.join(', ') || 'None'}`);
+            });
+
+            return {
+                selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+                attemptedFixes: actionableDiagnoses.length,
+                appliedFixes: 0,
+                branches: [],
+                pullRequestUrls: [],
+                warnings: []
+            };
         }
 
-        const fixSuccess = await engineer.applyFix(topIssue);
+        let appliedFixes = 0;
 
-        if (!fixSuccess) {
-            logger.error('Failed to apply fix. Aborting PR creation.');
-            return;
+        for (const diagnosis of actionableDiagnoses) {
+            const fixSuccess = await engineer.applyFix(diagnosis);
+            if (!fixSuccess) {
+                warnings.push(`Failed to apply fix for ${diagnosis.vulnerabilityId}.`);
+                continue;
+            }
+
+            appliedFixes++;
+            const branchName = diagnosis.fixInstruction
+                ? validator.sanitizeBranchName(diagnosis.fixInstruction.packageName, DEFAULT_BRANCH_PREFIX)
+                : `${DEFAULT_BRANCH_PREFIX}-${diagnosis.vulnerabilityId.toLowerCase()}`;
+            branches.push(branchName);
+
+            if (!process.env.GITHUB_TOKEN) {
+                warnings.push(`Skipped PR creation for ${diagnosis.vulnerabilityId}: GITHUB_TOKEN is not set.`);
+                continue;
+            }
+
+            logger.section('🤝 DIPLOMAT AGENT | Opening Pull Request');
+            const pushed = await diplomat.pushBranch(branchName);
+
+            if (!pushed) {
+                warnings.push(`Branch push failed for ${branchName}; PR was not created.`);
+                continue;
+            }
+
+            try {
+                const matched = selected.find(vulnerability => vulnerability.id === diagnosis.vulnerabilityId);
+                const prUrl = await diplomat.createPullRequest({
+                    branch: branchName,
+                    title: diplomat.generatePrTitle(branchName, diagnosis.vulnerabilityId),
+                    body: diplomat.generatePrBody(
+                        diagnosis.vulnerabilityId,
+                        matched?.severity,
+                        diagnosis.description
+                    ),
+                    severity: matched?.severity
+                });
+                pullRequestUrls.push(prUrl);
+                logger.success(`Pull Request created: ${prUrl}`);
+            } catch (error: any) {
+                warnings.push(`PR creation failed for ${branchName}: ${error.message}`);
+            }
         }
 
-        // ── Diplomat Agent ────────────────────────────────────────────────────
-        logger.section('🤝 DIPLOMAT AGENT | Opening Pull Request');
-
-        const { DiplomatAgent } = await import('../agents/diplomat');
-        const diplomat = new DiplomatAgent();
-
-        const pkgName = topIssue.description.match(/in ([a-z0-9-]+)@/)?.[1] || 'unknown';
-        const branchName = `warden/fix-${pkgName}`;
-
-        const prUrl = await diplomat.createPullRequest({
-            branch: branchName,
-            title: `[SECURITY] Fix for ${topIssue.vulnerabilityId}`,
-            body: [
-                '## 🛡️ Automated Security Fix',
-                '',
-                topIssue.description,
-                '',
-                `**Remediation**: ${topIssue.suggestedFix}`,
-                '',
-                '---',
-                '*Verified by Warden Patching Engine* ✅',
-            ].join('\n'),
-        });
-
-        if (prUrl) {
-            logger.success(`Pull Request created: ${prUrl}`);
-        }
+        return {
+            selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+            attemptedFixes: actionableDiagnoses.length,
+            appliedFixes,
+            branches,
+            pullRequestUrls,
+            warnings
+        };
     }
 }

@@ -75,6 +75,43 @@ export class NpmFixer implements IFixer {
         this.git = new GitManager();
     }
 
+    private getDependencySpec(currentSpec: string, targetVersion: string): string {
+        if (currentSpec.startsWith('workspace:')) {
+            return currentSpec;
+        }
+
+        const prefix = currentSpec.match(/^[~^]/)?.[0] || '';
+        return `${prefix}${targetVersion}`;
+    }
+
+    private hasTestScript(): boolean {
+        const packageJsonPath = path.resolve(process.cwd(), 'package.json');
+
+        try {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            return Boolean(packageJson.scripts?.test);
+        } catch {
+            return false;
+        }
+    }
+
+    private restoreFileSnapshot(
+        filePath: string,
+        originalContent: string | null,
+        existedInitially: boolean
+    ): void {
+        if (!existedInitially) {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+            return;
+        }
+
+        if (originalContent !== null) {
+            fs.writeFileSync(filePath, originalContent, 'utf-8');
+        }
+    }
+
     // ── canFix ──────────────────────────────────────────────────────────────
 
     canFix(instruction: FixInstruction): boolean {
@@ -119,15 +156,28 @@ export class NpmFixer implements IFixer {
         }
 
         try {
+            if (await this.git.hasUncommittedChanges()) {
+                logger.error(
+                    'Refusing to auto-fix with uncommitted changes present. Commit or stash changes first.'
+                );
+                return false;
+            }
+
             // 2. Checkout branch
             await this.git.checkoutBranch(branchName);
 
             // 3. Update package.json
             const packageJsonPath = path.resolve(process.cwd(), 'package.json');
+            const packageLockPath = path.resolve(process.cwd(), 'package-lock.json');
             if (!fs.existsSync(packageJsonPath)) {
                 throw new Error('package.json not found');
             }
 
+            const originalPackageJson = fs.readFileSync(packageJsonPath, 'utf-8');
+            const packageLockExisted = fs.existsSync(packageLockPath);
+            const originalPackageLock = packageLockExisted
+                ? fs.readFileSync(packageLockPath, 'utf-8')
+                : null;
             const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
             let updated = false;
 
@@ -136,7 +186,10 @@ export class NpmFixer implements IFixer {
                     `Updating dependencies: ${packageName} ` +
                     `${packageJson.dependencies[packageName]} → ${targetVersion}`
                 );
-                packageJson.dependencies[packageName] = targetVersion;
+                packageJson.dependencies[packageName] = this.getDependencySpec(
+                    packageJson.dependencies[packageName],
+                    targetVersion
+                );
                 updated = true;
             }
 
@@ -145,7 +198,10 @@ export class NpmFixer implements IFixer {
                     `Updating devDependencies: ${packageName} ` +
                     `${packageJson.devDependencies[packageName]} → ${targetVersion}`
                 );
-                packageJson.devDependencies[packageName] = targetVersion;
+                packageJson.devDependencies[packageName] = this.getDependencySpec(
+                    packageJson.devDependencies[packageName],
+                    targetVersion
+                );
                 updated = true;
             }
 
@@ -160,18 +216,29 @@ export class NpmFixer implements IFixer {
             fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
             // 4. Regenerate lock-file
-            logger.engineer('Running npm install to update lock-file...');
-            await runCommand('npm install', { log: false });
+            logger.engineer('Running npm install --package-lock-only to update lock-file...');
+            try {
+                await runCommand('npm install --package-lock-only', { log: false });
+            } catch (error: any) {
+                this.restoreFileSnapshot(packageJsonPath, originalPackageJson, true);
+                this.restoreFileSnapshot(packageLockPath, originalPackageLock, packageLockExisted);
+                throw error;
+            }
 
             // 5. Verification
-            logger.engineer('Running verification (npm test)...');
-            try {
-                await runCommand('npm test', { log: false });
-                logger.success('Verification passed!');
-            } catch {
-                logger.error('Verification failed! Reverting changes...');
-                await this.git.revertChanges();
-                return false;
+            if (this.hasTestScript()) {
+                logger.engineer('Running verification (npm test)...');
+                try {
+                    await runCommand('npm test', { log: false });
+                    logger.success('Verification passed!');
+                } catch {
+                    logger.error('Verification failed! Restoring modified files...');
+                    this.restoreFileSnapshot(packageJsonPath, originalPackageJson, true);
+                    this.restoreFileSnapshot(packageLockPath, originalPackageLock, packageLockExisted);
+                    return false;
+                }
+            } else {
+                logger.warn('No test script found in package.json. Skipping verification.');
             }
 
             // 6. Commit
