@@ -19,6 +19,8 @@ import { getConfig } from '../utils/config';
 import { DEFAULT_BRANCH_PREFIX, SCAN_RESULTS_DIR, SCAN_RESULTS_FILE, WORKSPACES_DIR } from '../constants';
 import { selectVulnerabilitiesForFix } from '../utils/scan-results';
 import { validator } from '../utils/validator';
+import { buildRemediationPlan } from '../utils/advisor';
+import { evaluatePolicy, writeApprovalRequest } from '../utils/policy';
 
 type SastFixSummary = Pick<
     WardenRunResult,
@@ -194,6 +196,38 @@ export class SastWorkflow implements IWorkflow {
         logger.warn(
             `Selected ${selected.length} vulnerability(ies) at or above ${options.minSeverity} severity.`
         );
+
+        const policyDecision = evaluatePolicy(
+            scanResult,
+            buildRemediationPlan(scanResult, {
+                appliedFixes: 0,
+                attemptedFixes: selected.length,
+                warnings: []
+            }),
+            options,
+            getConfig().getConfig()
+        );
+
+        if (policyDecision.shouldBlockFixes) {
+            const approvalRequest = writeApprovalRequest(
+                scanResult,
+                buildRemediationPlan(scanResult, {
+                    appliedFixes: 0,
+                    attemptedFixes: selected.length,
+                    warnings: policyDecision.reasons
+                }),
+                policyDecision
+            );
+            logger.warn(`Policy blocked automated fixes. Approval request written to ${approvalRequest}`);
+            return {
+                selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+                attemptedFixes: selected.length,
+                appliedFixes: 0,
+                branches: [],
+                pullRequestUrls: [],
+                warnings: policyDecision.reasons
+            };
+        }
 
         logger.section('🔧 ENGINEER AGENT | Diagnosing & Patching');
 

@@ -23,6 +23,7 @@ import { RunHistoryService } from './utils/history';
 import { writeHtmlReport, writeMarkdownReport } from './utils/reports';
 import { getConfig } from './utils/config';
 import { NotificationService } from './utils/notifications';
+import { evaluatePolicy, writeApprovalRequest } from './utils/policy';
 
 // Re-export WardenOptions so existing callers that imported it from
 // orchestrator.ts continue to work without modification.
@@ -58,17 +59,29 @@ export async function runWarden(options: WardenOptions): Promise<WardenRunResult
         const remediationPlan = buildRemediationPlan(workflowResult.scanResult, workflowResult);
         workflowResult.remediationPlan = remediationPlan;
 
+        const config = getConfig().getConfig();
+        const policyDecision = evaluatePolicy(workflowResult.scanResult, remediationPlan, options, config);
+        workflowResult.policyDecision = policyDecision;
+
         workflowResult.reportPaths = {
             markdown: writeMarkdownReport(workflowResult.scanResult, workflowResult, remediationPlan),
             html: writeHtmlReport(workflowResult.scanResult)
         };
+
+        if (policyDecision.approvalRequired && !policyDecision.approvalSatisfied) {
+            workflowResult.reportPaths.approvalRequest = writeApprovalRequest(
+                workflowResult.scanResult,
+                remediationPlan,
+                policyDecision
+            );
+        }
 
         const historyService = new RunHistoryService();
         workflowResult.history = historyService.append(
             createHistoryEntry(workflowResult.scanResult, workflowResult)
         );
 
-        const notificationService = new NotificationService(getConfig().get('notifications'));
+        const notificationService = new NotificationService(config.notifications);
         await notificationService.send({
             title: 'Warden Scan Completed',
             message: remediationPlan.summary,

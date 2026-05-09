@@ -194,6 +194,8 @@ export interface WardenOptions {
     verbose: boolean;
     scanMode?: ScanMode;
     dastTarget?: string;
+    ci?: boolean;
+    approvalToken?: string;
 }
 
 export interface WardenRunResult {
@@ -211,9 +213,11 @@ export interface WardenRunResult {
     reportPaths?: {
         markdown?: string;
         html?: string;
+        approvalRequest?: string;
     };
     remediationPlan?: RemediationPlan;
     history?: RunHistorySnapshot;
+    policyDecision?: PolicyDecision;
     warnings: string[];
 }
 
@@ -256,4 +260,13 @@ export interface RunHistorySnapshot {
     latest: RunHistoryEntry;
     previous?: RunHistoryEntry;
     trend: 'improving' | 'worsening' | 'unchanged' | 'first-run';
+}
+
+export interface PolicyDecision {
+    shouldBlockFixes: boolean;
+    shouldFailPipeline: boolean;
+    exitCode: number;
+    reasons: string[];
+    approvalRequired: boolean;
+    approvalSatisfied: boolean;
 }

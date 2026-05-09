@@ -34,6 +34,8 @@ program
     .option('--scanner <type>', 'Scanner to use: snyk, npm-audit, or all', 'snyk')
     .option('--severity <level>', 'Minimum severity to fix: low, medium, high, critical', 'high')
     .option('--max-fixes <number>', 'Maximum number of fixes to apply', '1')
+    .option('--ci', 'Enable CI policy gates and non-zero exit codes on policy failure')
+    .option('--approval-token <token>', 'Human approval token to allow risky remediations')
     .action(async (repository, options) => {
         try {
             // Set verbose mode
@@ -109,7 +111,9 @@ program
                 scanner: options.scanner,
                 minSeverity: options.severity,
                 maxFixes: parseInt(options.maxFixes, 10),
-                verbose: options.verbose || false
+                verbose: options.verbose || false,
+                ci: options.ci || false,
+                approvalToken: options.approvalToken
             });
 
             if (options.json) {
@@ -135,7 +139,21 @@ program
                     if (result.reportPaths.html) {
                         logger.info(`HTML: ${result.reportPaths.html}`);
                     }
+                    if (result.reportPaths.approvalRequest) {
+                        logger.info(`Approval Request: ${result.reportPaths.approvalRequest}`);
+                    }
                 }
+
+                if (result.policyDecision) {
+                    logger.section('🚦 Policy');
+                    logger.info(`Approval Required: ${result.policyDecision.approvalRequired ? 'yes' : 'no'}`);
+                    logger.info(`Pipeline Failure: ${result.policyDecision.shouldFailPipeline ? 'yes' : 'no'}`);
+                    result.policyDecision.reasons.forEach(reason => logger.warn(reason));
+                }
+            }
+
+            if (result.policyDecision?.shouldFailPipeline) {
+                process.exit(result.policyDecision.exitCode);
             }
 
         } catch (error: any) {
