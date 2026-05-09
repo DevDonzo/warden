@@ -8,6 +8,7 @@ scan-results/
 workspaces/
 logs/
 *.log
+.npm-cache/
 
 # Vercel
 .vercel

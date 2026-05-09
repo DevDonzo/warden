@@ -2,222 +2,228 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![npm version](https://img.shields.io/npm/v/@devdonzo/warden?style=for-the-badge)](https://www.npmjs.com/package/@devdonzo/warden)
+[![CI](https://img.shields.io/github/actions/workflow/status/DevDonzo/warden/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/DevDonzo/warden/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
 
-> **Who watches the code?**
+> Autonomous security remediation with workflow memory, policy gates, and pull-request automation.
 
-Warden is an autonomous SRE & security orchestration agent that hunts vulnerabilities, patches them, verifies fixes pass tests, and opens PRs—all without human intervention.
+Warden is a security orchestration CLI for Node.js repositories and infrastructure targets. It scans dependencies or network surfaces, prioritizes what matters, attempts safe automated fixes, produces operator-grade reports, remembers recurring hotspots, and can enforce CI policy when risk exceeds your threshold.
 
-🔗 **Website:** https://warden-cli.vercel.app
+## What Warden Does Now
 
----
+- **SAST and DAST workflows**: Dependency scanning plus infrastructure advisory generation.
+- **Agentic remediation planning**: Every run now produces posture, risk score, immediate actions, and follow-up guidance.
+- **Safe auto-fix execution**: Fixes respect severity thresholds, fix limits, dirty-repo safeguards, and approval gates.
+- **PR automation**: Warden can create and push remediation branches and open GitHub PRs when credentials are configured.
+- **CI policy enforcement**: `--ci` mode can fail the pipeline on severity or posture thresholds.
+- **Human approval for risky fixes**: High-risk remediation can require explicit approval via `--approval-token approved`.
+- **Workflow memory**: Warden tracks recurring vulnerable packages per repository so hotspots become visible over time.
+- **Machine-readable and human-readable output**: JSON run results, Markdown reports, HTML reports, approval request artifacts, and local run history.
 
-## ✨ Key Features
-
-- **Automated Vulnerability Scanning** - Detects security issues via SAST and DAST workflows
-- **Intelligent Auto-Fix** - Automatically patches vulnerabilities and verifies with tests
-- **PR Generation** - Opens pull requests with detailed security reports and fixes
-- **Plugin Architecture** - Extensible scanner system supporting Snyk, npm-audit, and custom scanners
-- **Multi-Package Manager Support** - npm, with roadmap for pip, cargo, and more
-- **Offline Demo Mode** - Test end-to-end flows without external dependencies
-
----
-
-## 🚀 Quick Start
-
-### Installation
+## Install
 
 ```bash
 npm install -g @devdonzo/warden
 ```
 
-### Setup
+Or for local development:
 
 ```bash
-warden setup
-```
-
-### Run a Scan
-
-```bash
-warden scan <repository-url>
-```
-
-### DAST Scan (Infrastructure)
-
-```bash
-warden dast <target>
-```
-
----
-
-## 📋 Requirements
-
-- **Node.js:** 18.0.0 or higher
-- **Git:** For repository cloning and PR creation
-- **GitHub Token:** Required for PR operations (set `GITHUB_TOKEN` environment variable)
-
----
-
-## 🏗️ Architecture
-
-Warden uses a **workflow-based orchestration model** with pluggable components:
-
-### Core Components
-
-| Component | Purpose |
-|-----------|---------|
-| **Watchman** | SAST scanner registry with adapter-based plugin system |
-| **Engineer** | Auto-fix engine with pluggable fixer implementations |
-| **Diplomat** | GitHub PR generation and reporting |
-| **SastWorkflow** | End-to-end SAST pipeline (clone → scan → diagnose → fix) |
-| **DastWorkflow** | Infrastructure scanning (Nmap + Metasploit integration) |
-
-### Key Abstractions
-
-- **IScanner** - Interface for scanner adapters (Snyk, npm-audit, MockScanner)
-- **IFixer** - Interface for package manager fixers (npm, pip, cargo roadmap)
-- **ShellService** - Centralized command execution with error handling
-- **ProgressReporter** - UI abstraction for consistent logging
-
----
-
-## 🔌 Scanner Plugins
-
-Warden supports multiple vulnerability scanners via a registry:
-
-- **Snyk Adapter** - Professional vulnerability intelligence
-- **npm Audit Adapter** - Built-in npm package auditing
-- **Mock Scanner** - For demos and offline testing
-
-### Adding a Custom Scanner
-
-1. Implement the `IScanner` interface
-2. Create an adapter conforming to the registry contract
-3. Register with `ScannerRegistry`
-
----
-
-## 🛠️ Configuration
-
-Create a `.warden` config file in your project root:
-
-```yaml
-scanners:
-  - snyk
-  - npm-audit
-
-fixers:
-  npm: true
-
-github:
-  token: ${GITHUB_TOKEN}
-  owner: your-org
-  repo: your-repo
-
-dast:
-  targets:
-    - https://your-api.example.com
-```
-
----
-
-## 📊 Workflows
-
-### SAST Workflow
-
-```
-Clone Repository → Prepare Workspace → Scan Dependencies 
-  → Diagnose Issues → Generate Patches → Run Tests 
-  → Create PR with Fixes
-```
-
-### DAST Workflow
-
-```
-Infrastructure Scan (Nmap + Metasploit) → Merge Results 
-  → Generate Advisory PR
-```
-
----
-
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-npm test              # Run all tests
-npm run test:watch   # Watch mode
-npm run test:coverage # With coverage report
-```
-
----
-
-## 🛠️ Development
-
-### Build
-
-```bash
+npm install
 npm run build
 ```
 
-### Development Server
+## Quick Start
+
+Validate the environment:
 
 ```bash
-npm run dev
+warden validate
 ```
 
-### Format Code
+Run a local dry-run dependency scan:
 
 ```bash
-npm run format
-npm run format:check
+warden scan . --dry-run --scanner npm-audit --severity high --max-fixes 2
 ```
 
----
+Run in CI mode with policy gates:
 
-## 📦 Project Structure
-
-```
-src/
-├── agents/          # Watchman, Engineer, Diplomat
-├── workflows/       # SAST and DAST orchestration
-├── scanners/        # Scanner adapters and registry
-├── services/        # Shell execution, progress reporting
-├── types/           # TypeScript interfaces
-├── utils/           # Mock data, constants
-└── cli.ts          # CLI entry point
+```bash
+warden scan . --ci --json --scanner npm-audit --severity high
 ```
 
----
+Approve a risky remediation after human review:
 
-## 🗺️ Roadmap
+```bash
+warden scan . --scanner npm-audit --approval-token approved
+```
 
-- [ ] Support for additional package managers (Python, Rust, Go)
-- [ ] Enhanced reporting and metrics dashboards
-- [ ] Custom remediation rules
-- [ ] Kubernetes security scanning
-- [ ] Supply chain dependency verification
+Run an infrastructure advisory scan:
 
----
+```bash
+warden dast https://your-api.example.com --dry-run
+```
 
-## 🤝 Contributing
+## Key Commands
 
-We welcome contributions! To add a new scanner or fixer:
+```bash
+warden scan [repository-or-path]
+warden dast <target>
+warden validate
+warden doctor
+warden status
+warden config --show
+warden config --create
+```
 
-1. Implement the appropriate interface (`IScanner` or `IFixer`)
-2. Create an adapter in the relevant directory
-3. Add tests following the existing test structure
-4. Update documentation with usage examples
+## Important Flags
 
----
+```bash
+--scanner <snyk|npm-audit|all>
+--severity <low|medium|high|critical>
+--max-fixes <n>
+--dry-run
+--json
+--ci
+--approval-token approved
+--skip-validation
+--verbose
+```
 
-## 📄 License
+## Output Artifacts
+
+Warden writes durable run artifacts into `scan-results/`:
+
+- `scan-results.json`: latest scanner output
+- `warden-report.md`: operator-focused Markdown report
+- `scan-results.html`: HTML report
+- `history.json`: longitudinal run history
+- `memory.json`: recurring vulnerable package memory
+- `warden-approval-request.json`: generated when policy blocks risky fixes pending approval
+
+## Example `.wardenrc.json`
+
+```json
+{
+  "scanner": {
+    "primary": "snyk",
+    "fallback": true,
+    "timeout": 300000,
+    "retries": 3
+  },
+  "fixes": {
+    "maxPerRun": 2,
+    "minSeverity": "high",
+    "autoMerge": false,
+    "branchPrefix": "warden/fix"
+  },
+  "policy": {
+    "failOnSeverity": "critical",
+    "failOnPosture": "critical",
+    "requireApprovalAboveSeverity": "high"
+  },
+  "github": {
+    "assignees": [],
+    "labels": ["security", "automated"],
+    "reviewers": [],
+    "autoAssign": true
+  },
+  "notifications": {
+    "enabled": false
+  },
+  "logging": {
+    "level": "info",
+    "file": true,
+    "console": true
+  }
+}
+```
+
+## Environment Variables
+
+```bash
+GITHUB_TOKEN=...     # required for PR creation and branch automation
+SNYK_TOKEN=...       # recommended when using the Snyk scanner
+GITHUB_ASSIGNEE=...  # optional default assignee for PRs
+GITHUB_OWNER=...     # optional fallback owner
+GITHUB_REPO=...      # optional fallback repo
+```
+
+## CI/CD
+
+The repository already includes GitHub Actions workflows:
+
+- `.github/workflows/ci.yml`: build, test, and CLI smoke checks
+- `.github/workflows/publish.yml`: npm publish workflow
+
+Recommended CI usage inside your own repositories:
+
+```bash
+warden scan . --ci --json --scanner npm-audit --severity high
+```
+
+That gives you:
+
+- deterministic non-zero exit codes on policy failure
+- JSON output for downstream automation
+- approval artifacts when risky auto-remediation is blocked
+
+## Architecture
+
+| Component | Responsibility |
+|---|---|
+| `Watchman` | Scanner execution and findings normalization |
+| `Engineer` | Safe remediation planning and fix application |
+| `Diplomat` | Branch push and pull-request orchestration |
+| `SastWorkflow` | End-to-end dependency remediation flow |
+| `DastWorkflow` | Infrastructure findings and advisory PR flow |
+| `advisor` | Risk scoring, posture analysis, and immediate action planning |
+| `policy` | CI gates and approval enforcement |
+| `history` | Longitudinal run trend tracking |
+| `memory` | Recurring package hotspot tracking |
+
+## Testing
+
+```bash
+npm run build
+npm test
+npm run test:coverage
+```
+
+The suite now covers:
+
+- scanner parsing
+- remediation selection logic
+- policy decisions
+- fixture-backed SAST workflow integration
+- run history
+- recurring memory hotspots
+
+## Release Status
+
+Current package version: `1.4.0`
+
+This version introduces:
+
+- agentic run assessment and report generation
+- CI policy gates and approval requirements
+- fixture-backed workflow integration tests
+- recurring vulnerability hotspot memory
+- safer npm remediation and PR flow hardening
+
+## Roadmap
+
+- multi-ecosystem remediation for Python, Rust, Go, Ruby, and PHP
+- GitHub Actions bootstrap generation for downstream repos
+- stronger human review UX than approval tokens alone
+- end-to-end git fixture repos for real remediation execution
+- shared remote memory and team dashboards
+
+## Contributing
+
+See [.github/CONTRIBUTING.md](./.github/CONTRIBUTING.md) for contribution guidance.
+
+## License
 
 ISC © [DevDonzo](https://github.com/DevDonzo)
-
----
-
-## 🐛 Issues & Support
-
-Found a bug or have a feature request? Open an issue on [GitHub](https://github.com/DevDonzo/warden/issues).

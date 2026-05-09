@@ -5,6 +5,53 @@ All notable changes to Warden will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-05-09
+
+### ✨ Added
+
+- **Agentic Assessment Layer**:
+  - Risk scoring and security posture classification
+  - Immediate actions, manual follow-ups, and strategic improvements per run
+  - Markdown and HTML reporting artifacts
+- **Policy Gates**:
+  - `--ci` mode for deterministic pipeline failures
+  - `policy.failOnSeverity` and `policy.failOnPosture` thresholds
+  - `policy.requireApprovalAboveSeverity` for human approval on risky fixes
+  - Approval request artifact generation
+- **Workflow Memory**:
+  - Persistent run history with trend detection
+  - Recurring vulnerable package hotspot tracking by repository
+- **Fixture-backed Workflow Tests**:
+  - Integration coverage for risky-fix blocking
+  - Policy evaluation tests
+  - Memory tracking tests
+
+### 🔧 Changed
+
+- **SAST Workflow**:
+  - Severity thresholds and `maxFixes` are now enforced in actual remediation selection
+  - Multiple fixes can be selected in a single run
+- **Fix Safety**:
+  - npm remediation preserves version ranges
+  - lockfile refresh uses `npm install --package-lock-only`
+  - dirty repos are blocked instead of being destructively cleaned
+- **PR Automation**:
+  - Branches are pushed before PR creation
+  - Default base branch detection is automatic instead of assuming `main`
+- **CLI Output**:
+  - `--json` now emits structured run results
+  - standard console mode now surfaces posture, trend, policy, memory, and report paths
+
+### 🐛 Fixed
+
+- **npm-audit Auto-fix Path**:
+  - stopped fabricating `fixedIn: ["npm audit fix"]`
+  - direct upgrades are separated from manual/transitive findings
+- **Publish Workflow**:
+  - corrected npm package references to `@devdonzo/warden`
+
+---
+
 ## [1.3.0] - 2026-02-01
 
 ### ✨ Added
