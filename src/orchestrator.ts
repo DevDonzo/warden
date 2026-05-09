@@ -24,6 +24,7 @@ import { writeHtmlReport, writeMarkdownReport } from './utils/reports';
 import { getConfig } from './utils/config';
 import { NotificationService } from './utils/notifications';
 import { evaluatePolicy, writeApprovalRequest } from './utils/policy';
+import { MemoryService } from './utils/memory';
 
 // Re-export WardenOptions so existing callers that imported it from
 // orchestrator.ts continue to work without modification.
@@ -79,6 +80,12 @@ export async function runWarden(options: WardenOptions): Promise<WardenRunResult
         const historyService = new RunHistoryService();
         workflowResult.history = historyService.append(
             createHistoryEntry(workflowResult.scanResult, workflowResult)
+        );
+
+        const memoryService = new MemoryService();
+        workflowResult.memory = memoryService.update(
+            workflowResult.repository || workflowResult.targetPath,
+            workflowResult.scanResult
         );
 
         const notificationService = new NotificationService(config.notifications);

@@ -217,6 +217,7 @@ export interface WardenRunResult {
     };
     remediationPlan?: RemediationPlan;
     history?: RunHistorySnapshot;
+    memory?: MemorySnapshot;
     policyDecision?: PolicyDecision;
     warnings: string[];
 }
@@ -260,6 +261,18 @@ export interface RunHistorySnapshot {
     latest: RunHistoryEntry;
     previous?: RunHistoryEntry;
     trend: 'improving' | 'worsening' | 'unchanged' | 'first-run';
+}
+
+export interface MemoryHotspot {
+    packageName: string;
+    occurrences: number;
+    lastSeverity: Severity;
+}
+
+export interface MemorySnapshot {
+    repoKey: string;
+    runCount: number;
+    topHotspots: MemoryHotspot[];
 }
 
 export interface PolicyDecision {

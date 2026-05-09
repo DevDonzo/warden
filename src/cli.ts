@@ -131,6 +131,16 @@ program
                     logger.info(`Trend: ${result.history.trend}`);
                 }
 
+                if (result.memory) {
+                    logger.section('🧠 Memory');
+                    logger.info(`Tracked Runs: ${result.memory.runCount}`);
+                    result.memory.topHotspots.forEach(hotspot => {
+                        logger.info(
+                            `${hotspot.packageName}: ${hotspot.occurrences} hit(s), last severity ${hotspot.lastSeverity}`
+                        );
+                    });
+                }
+
                 if (result.reportPaths?.markdown || result.reportPaths?.html) {
                     logger.section('📝 Reports');
                     if (result.reportPaths.markdown) {
