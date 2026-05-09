@@ -213,6 +213,42 @@ program
     });
 
 program
+    .command('bootstrap-ci')
+    .description('Generate a GitHub Actions workflow for running Warden in this repository')
+    .option('--workflow-name <name>', 'Workflow filename', 'warden.yml')
+    .option('--scanner <type>', 'Scanner to run in CI: snyk, npm-audit, or all', 'npm-audit')
+    .option('--severity <level>', 'Minimum severity gate: low, medium, high, critical', 'high')
+    .option('--create-config', 'Create a default .wardenrc.json if one does not exist')
+    .option('--force', 'Overwrite generated files if they already exist')
+    .action(async (options) => {
+        logger.header('⚙️  Warden CI Bootstrap');
+        const { bootstrapGitHubActions } = await import('./utils/bootstrap');
+
+        const result = bootstrapGitHubActions({
+            workflowName: options.workflowName,
+            scanner: options.scanner,
+            severity: options.severity,
+            createConfig: options.createConfig || false,
+            force: options.force || false
+        });
+
+        if (result.created.length > 0) {
+            logger.success('Created files:');
+            result.created.forEach(filePath => logger.info(`  ${filePath}`));
+        }
+
+        if (result.skipped.length > 0) {
+            logger.warn('Skipped existing files:');
+            result.skipped.forEach(filePath => logger.info(`  ${filePath}`));
+        }
+
+        logger.info('Next steps:');
+        logger.info('  1. Review the generated workflow.');
+        logger.info('  2. Add repository secrets such as SNYK_TOKEN if needed.');
+        logger.info('  3. Commit and push the workflow to enable CI scanning.');
+    });
+
+program
     .command('config')
     .description('Manage configuration')
     .option('--show', 'Show current configuration')

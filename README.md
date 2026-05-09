@@ -73,6 +73,7 @@ warden dast <target>
 warden validate
 warden doctor
 warden status
+warden bootstrap-ci
 warden config --show
 warden config --create
 ```
@@ -168,6 +169,12 @@ That gives you:
 - deterministic non-zero exit codes on policy failure
 - JSON output for downstream automation
 - approval artifacts when risky auto-remediation is blocked
+
+To generate a starter workflow in another repository:
+
+```bash
+warden bootstrap-ci --create-config --scanner npm-audit --severity high
+```
 
 ## Architecture
 

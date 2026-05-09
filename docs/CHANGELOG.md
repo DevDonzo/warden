@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Workflow Memory**:
   - Persistent run history with trend detection
   - Recurring vulnerable package hotspot tracking by repository
+- **CI Bootstrap**:
+  - `warden bootstrap-ci` command for downstream GitHub Actions generation
+  - Optional default `.wardenrc.json` generation during bootstrap
 - **Fixture-backed Workflow Tests**:
   - Integration coverage for risky-fix blocking
   - Policy evaluation tests
