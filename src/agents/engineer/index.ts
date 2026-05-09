@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { NpmFixer } from './fixer';
+import { NpmFixer, PipFixer } from './fixer';
 import { logger } from '../../utils/logger';
 import { Vulnerability, Diagnosis, FixInstruction, ScanMode } from '../../types';
 import { SEVERITY_PRIORITY, DEFAULT_BRANCH_PREFIX } from '../../constants';
@@ -28,10 +28,10 @@ interface ScanResults {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class EngineerAgent {
-    private fixer: NpmFixer;
+    private fixers: Array<NpmFixer | PipFixer>;
 
     constructor() {
-        this.fixer = new NpmFixer();
+        this.fixers = [new NpmFixer(), new PipFixer()];
     }
 
     // ── File I/O ──────────────────────────────────────────────────────────────
@@ -99,9 +99,11 @@ export class EngineerAgent {
             const fixInstruction: FixInstruction | undefined =
                 targetVersion && vuln.packageName && vuln.version
                     ? {
+                          ecosystem: vuln.ecosystem || 'npm',
                           packageName: vuln.packageName,
                           currentVersion: vuln.version,
                           targetVersion,
+                          manifestPath: vuln.ecosystem === 'python' ? 'requirements.txt' : 'package.json'
                       }
                     : undefined;
 
@@ -112,7 +114,9 @@ export class EngineerAgent {
                 suggestedFix: targetVersion
                     ? `Update ${vuln.packageName} from ${vuln.version} to ${targetVersion}`
                     : `No known fix for ${vuln.packageName}@${vuln.version}`,
-                filesToModify: targetVersion ? ['package.json'] : [],
+                filesToModify: targetVersion
+                    ? [vuln.ecosystem === 'python' ? 'requirements.txt' : 'package.json']
+                    : [],
                 fixInstruction,
             };
         });
@@ -214,16 +218,17 @@ export class EngineerAgent {
         // ── Structured path (preferred) ────────────────────────────────────
         if (diagnosis.fixInstruction) {
             const { fixInstruction } = diagnosis;
+            const fixer = this.fixers.find(candidate => candidate.canFix(fixInstruction));
 
-            if (!this.fixer.canFix(fixInstruction)) {
+            if (!fixer) {
                 logger.error(
-                    `NpmFixer cannot handle "${fixInstruction.packageName}". ` +
-                        'This may be a transitive dependency not present in package.json.'
+                    `No fixer can handle "${fixInstruction.packageName}". ` +
+                        'This may be a transitive dependency or unsupported manifest type.'
                 );
                 return false;
             }
 
-            return this.fixer.applyFix(
+            return fixer.applyFix(
                 fixInstruction,
                 diagnosis.vulnerabilityId,
                 DEFAULT_BRANCH_PREFIX
@@ -244,8 +249,17 @@ export class EngineerAgent {
 
         const [, packageName, currentVersion, newVersion] = match;
 
-        return this.fixer.applyFix(
-            { packageName, currentVersion, targetVersion: newVersion },
+        const fallbackInstruction: FixInstruction = {
+            ecosystem: 'npm',
+            packageName,
+            currentVersion,
+            targetVersion: newVersion,
+            manifestPath: 'package.json'
+        };
+        const fixer = this.fixers[0];
+
+        return fixer.applyFix(
+            fallbackInstruction,
             diagnosis.vulnerabilityId,
             DEFAULT_BRANCH_PREFIX
         );

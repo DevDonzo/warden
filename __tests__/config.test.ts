@@ -148,6 +148,21 @@ describe('ConfigManager', () => {
             expect(result.valid).toBe(false);
             expect(result.errors).toContain('Invalid logging.level value');
         });
+
+        it('should detect invalid policy values', () => {
+            const manager = new ConfigManager('/nonexistent');
+            manager.set('policy', {
+                failOnSeverity: 'invalid' as any,
+                failOnPosture: 'bad' as any,
+                requireApprovalAboveSeverity: 'nope' as any
+            });
+
+            const result = manager.validate();
+            expect(result.valid).toBe(false);
+            expect(result.errors).toContain('Invalid policy.failOnSeverity value');
+            expect(result.errors).toContain('Invalid policy.failOnPosture value');
+            expect(result.errors).toContain('Invalid policy.requireApprovalAboveSeverity value');
+        });
     });
 
     describe('save and persistence', () => {

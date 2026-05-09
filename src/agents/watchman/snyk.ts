@@ -15,6 +15,8 @@ export interface Vulnerability {
     fixedIn?: string[];
     description?: string;
     cvssScore?: number;
+    references?: string[];
+    ecosystem?: 'npm' | 'python';
 }
 
 export interface ScanResult {

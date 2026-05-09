@@ -17,7 +17,14 @@ import { loadSpecs } from './core/spec';
 import { logger } from './utils/logger';
 import { SastWorkflow } from './workflows/sast-workflow';
 import { DastWorkflow } from './workflows/dast-workflow';
-import { WardenOptions } from './types';
+import { WardenOptions, WardenRunResult } from './types';
+import { buildRemediationPlan, createHistoryEntry } from './utils/advisor';
+import { RunHistoryService } from './utils/history';
+import { writeHtmlReport, writeMarkdownReport } from './utils/reports';
+import { getConfig } from './utils/config';
+import { NotificationService } from './utils/notifications';
+import { evaluatePolicy, writeApprovalRequest } from './utils/policy';
+import { MemoryService } from './utils/memory';
 
 // Re-export WardenOptions so existing callers that imported it from
 // orchestrator.ts continue to work without modification.
@@ -31,7 +38,7 @@ export type { WardenOptions };
  *
  * @param options  Top-level configuration for this run.
  */
-export async function runWarden(options: WardenOptions): Promise<void> {
+export async function runWarden(options: WardenOptions): Promise<WardenRunResult> {
     // ── 1. Load Core Configuration ────────────────────────────────────────────
     logger.section('📋 Loading Configuration');
 
@@ -45,11 +52,60 @@ export async function runWarden(options: WardenOptions): Promise<void> {
     }
 
     // ── 2. Select and execute the appropriate workflow ────────────────────────
-    if (options.scanMode === 'dast') {
-        const workflow = new DastWorkflow();
-        await workflow.run(options);
-    } else {
-        const workflow = new SastWorkflow();
-        await workflow.run(options);
+    const workflowResult = options.scanMode === 'dast'
+        ? await new DastWorkflow().run(options)
+        : await new SastWorkflow().run(options);
+
+    if (workflowResult.scanResult) {
+        const remediationPlan = buildRemediationPlan(workflowResult.scanResult, workflowResult);
+        workflowResult.remediationPlan = remediationPlan;
+
+        const config = getConfig().getConfig();
+        const policyDecision = evaluatePolicy(workflowResult.scanResult, remediationPlan, options, config);
+        workflowResult.policyDecision = policyDecision;
+
+        workflowResult.reportPaths = {
+            markdown: writeMarkdownReport(workflowResult.scanResult, workflowResult, remediationPlan),
+            html: writeHtmlReport(workflowResult.scanResult)
+        };
+
+        if (policyDecision.approvalRequired && !policyDecision.approvalSatisfied) {
+            workflowResult.reportPaths.approvalRequest = writeApprovalRequest(
+                workflowResult.scanResult,
+                remediationPlan,
+                policyDecision
+            );
+        }
+
+        const historyService = new RunHistoryService();
+        workflowResult.history = historyService.append(
+            createHistoryEntry(workflowResult.scanResult, workflowResult)
+        );
+
+        const memoryService = new MemoryService();
+        workflowResult.memory = memoryService.update(
+            workflowResult.repository || workflowResult.targetPath,
+            workflowResult.scanResult
+        );
+
+        const notificationService = new NotificationService(config.notifications);
+        await notificationService.send({
+            title: 'Warden Scan Completed',
+            message: remediationPlan.summary,
+            severity:
+                remediationPlan.posture === 'critical'
+                    ? 'error'
+                    : remediationPlan.posture === 'elevated'
+                    ? 'warning'
+                    : 'success',
+            details: {
+                repository: workflowResult.repository || workflowResult.targetPath,
+                vulnerabilities: workflowResult.scanResult.summary.total,
+                fixed: workflowResult.appliedFixes,
+                prUrl: workflowResult.pullRequestUrls[0]
+            }
+        });
     }
+
+    return workflowResult;
 }

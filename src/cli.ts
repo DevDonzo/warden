@@ -31,9 +31,11 @@ program
     .option('--json', 'Output results as JSON')
     .option('--dry-run', 'Preview changes without creating branches or PRs')
     .option('--skip-validation', 'Skip pre-flight validation checks')
-    .option('--scanner <type>', 'Scanner to use: snyk, npm-audit, or all', 'snyk')
+    .option('--scanner <type>', 'Scanner to use: snyk, npm-audit, pip-audit, or all', 'snyk')
     .option('--severity <level>', 'Minimum severity to fix: low, medium, high, critical', 'high')
     .option('--max-fixes <number>', 'Maximum number of fixes to apply', '1')
+    .option('--ci', 'Enable CI policy gates and non-zero exit codes on policy failure')
+    .option('--approval-token <token>', 'Human approval token to allow risky remediations')
     .action(async (repository, options) => {
         try {
             // Set verbose mode
@@ -44,6 +46,10 @@ program
 
             // Set quiet mode
             if (options.quiet) {
+                logger.setQuiet(true);
+            }
+
+            if (options.json && !options.verbose) {
                 logger.setQuiet(true);
             }
 
@@ -98,15 +104,67 @@ program
 
             // Import and run the main orchestrator
             const { runWarden } = await import('./orchestrator');
-            await runWarden({
+            const result = await runWarden({
                 targetPath,
                 repository: isRemote ? sanitizedRepo : undefined,
                 dryRun: options.dryRun || false,
                 scanner: options.scanner,
                 minSeverity: options.severity,
                 maxFixes: parseInt(options.maxFixes, 10),
-                verbose: options.verbose || false
+                verbose: options.verbose || false,
+                ci: options.ci || false,
+                approvalToken: options.approvalToken
             });
+
+            if (options.json) {
+                console.log(JSON.stringify(result, null, 2));
+            } else {
+                if (result.remediationPlan) {
+                    logger.section('🧠 Agentic Assessment');
+                    logger.info(`Posture: ${result.remediationPlan.posture}`);
+                    logger.info(`Risk Score: ${result.remediationPlan.riskScore}/100`);
+                    logger.info(result.remediationPlan.summary);
+                }
+
+                if (result.history) {
+                    logger.section('📈 Trend');
+                    logger.info(`Trend: ${result.history.trend}`);
+                }
+
+                if (result.memory) {
+                    logger.section('🧠 Memory');
+                    logger.info(`Tracked Runs: ${result.memory.runCount}`);
+                    result.memory.topHotspots.forEach(hotspot => {
+                        logger.info(
+                            `${hotspot.packageName}: ${hotspot.occurrences} hit(s), last severity ${hotspot.lastSeverity}`
+                        );
+                    });
+                }
+
+                if (result.reportPaths?.markdown || result.reportPaths?.html) {
+                    logger.section('📝 Reports');
+                    if (result.reportPaths.markdown) {
+                        logger.info(`Markdown: ${result.reportPaths.markdown}`);
+                    }
+                    if (result.reportPaths.html) {
+                        logger.info(`HTML: ${result.reportPaths.html}`);
+                    }
+                    if (result.reportPaths.approvalRequest) {
+                        logger.info(`Approval Request: ${result.reportPaths.approvalRequest}`);
+                    }
+                }
+
+                if (result.policyDecision) {
+                    logger.section('🚦 Policy');
+                    logger.info(`Approval Required: ${result.policyDecision.approvalRequired ? 'yes' : 'no'}`);
+                    logger.info(`Pipeline Failure: ${result.policyDecision.shouldFailPipeline ? 'yes' : 'no'}`);
+                    result.policyDecision.reasons.forEach(reason => logger.warn(reason));
+                }
+            }
+
+            if (result.policyDecision?.shouldFailPipeline) {
+                process.exit(result.policyDecision.exitCode);
+            }
 
         } catch (error: any) {
             logger.error('Fatal error during scan', error);
@@ -152,6 +210,42 @@ program
         logger.header('🚀 Initializing Warden');
         const { initializeWarden } = await import('./setup');
         await initializeWarden();
+    });
+
+program
+    .command('bootstrap-ci')
+    .description('Generate a GitHub Actions workflow for running Warden in this repository')
+    .option('--workflow-name <name>', 'Workflow filename', 'warden.yml')
+    .option('--scanner <type>', 'Scanner to run in CI: snyk, npm-audit, or all', 'npm-audit')
+    .option('--severity <level>', 'Minimum severity gate: low, medium, high, critical', 'high')
+    .option('--create-config', 'Create a default .wardenrc.json if one does not exist')
+    .option('--force', 'Overwrite generated files if they already exist')
+    .action(async (options) => {
+        logger.header('⚙️  Warden CI Bootstrap');
+        const { bootstrapGitHubActions } = await import('./utils/bootstrap');
+
+        const result = bootstrapGitHubActions({
+            workflowName: options.workflowName,
+            scanner: options.scanner,
+            severity: options.severity,
+            createConfig: options.createConfig || false,
+            force: options.force || false
+        });
+
+        if (result.created.length > 0) {
+            logger.success('Created files:');
+            result.created.forEach(filePath => logger.info(`  ${filePath}`));
+        }
+
+        if (result.skipped.length > 0) {
+            logger.warn('Skipped existing files:');
+            result.skipped.forEach(filePath => logger.info(`  ${filePath}`));
+        }
+
+        logger.info('Next steps:');
+        logger.info('  1. Review the generated workflow.');
+        logger.info('  2. Add repository secrets such as SNYK_TOKEN if needed.');
+        logger.info('  3. Commit and push the workflow to enable CI scanning.');
     });
 
 program

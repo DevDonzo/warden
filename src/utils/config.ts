@@ -51,6 +51,13 @@ export interface WardenConfig {
         console: boolean;
     };
 
+    // Policy settings
+    policy: {
+        failOnSeverity?: 'low' | 'medium' | 'high' | 'critical';
+        failOnPosture?: 'guarded' | 'elevated' | 'critical';
+        requireApprovalAboveSeverity?: 'low' | 'medium' | 'high' | 'critical';
+    };
+
     // Exclusions
     exclude: {
         packages: string[];
@@ -88,6 +95,11 @@ const DEFAULT_CONFIG: WardenConfig = {
         level: 'info',
         file: true,
         console: true
+    },
+    policy: {
+        failOnSeverity: 'critical',
+        failOnPosture: 'critical',
+        requireApprovalAboveSeverity: 'critical'
     },
     exclude: {
         packages: [],
@@ -252,6 +264,27 @@ export class ConfigManager {
         // Validate logging level
         if (!['error', 'warn', 'info', 'debug'].includes(this.config.logging.level)) {
             errors.push('Invalid logging.level value');
+        }
+
+        if (
+            this.config.policy.failOnSeverity &&
+            !['low', 'medium', 'high', 'critical'].includes(this.config.policy.failOnSeverity)
+        ) {
+            errors.push('Invalid policy.failOnSeverity value');
+        }
+
+        if (
+            this.config.policy.failOnPosture &&
+            !['guarded', 'elevated', 'critical'].includes(this.config.policy.failOnPosture)
+        ) {
+            errors.push('Invalid policy.failOnPosture value');
+        }
+
+        if (
+            this.config.policy.requireApprovalAboveSeverity &&
+            !['low', 'medium', 'high', 'critical'].includes(this.config.policy.requireApprovalAboveSeverity)
+        ) {
+            errors.push('Invalid policy.requireApprovalAboveSeverity value');
         }
 
         return {

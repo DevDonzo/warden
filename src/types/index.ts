@@ -5,8 +5,9 @@
  */
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
-export type ScannerType = 'snyk' | 'npm-audit' | 'nmap' | 'metasploit' | 'mock';
+export type ScannerType = 'snyk' | 'npm-audit' | 'pip-audit' | 'nmap' | 'metasploit' | 'mock';
 export type ScanMode = 'sast' | 'dast';
+export type Ecosystem = 'npm' | 'python';
 
 export interface Vulnerability {
     id: string;
@@ -19,6 +20,7 @@ export interface Vulnerability {
     cvssScore?: number;
     cwe?: string[];
     references?: string[];
+    ecosystem?: Ecosystem;
     // DAST-specific fields
     targetHost?: string;
     targetPort?: number;
@@ -119,9 +121,11 @@ export interface ValidateOptions {
  * Replaces regex-parsed strings in the fix pipeline.
  */
 export interface FixInstruction {
+    ecosystem: Ecosystem;
     packageName: string;
     currentVersion: string;
     targetVersion: string;
+    manifestPath?: string;
 }
 
 export interface Diagnosis {
@@ -188,10 +192,98 @@ export interface WardenOptions {
     targetPath: string;
     repository?: string;
     dryRun: boolean;
-    scanner: 'snyk' | 'npm-audit' | 'all';
+    scanner: 'snyk' | 'npm-audit' | 'pip-audit' | 'all';
     minSeverity: Severity;
     maxFixes: number;
     verbose: boolean;
     scanMode?: ScanMode;
     dastTarget?: string;
+    ci?: boolean;
+    approvalToken?: string;
+}
+
+export interface WardenRunResult {
+    mode: ScanMode;
+    targetPath: string;
+    repository?: string;
+    dryRun: boolean;
+    scanResult?: ScanResult;
+    selectedVulnerabilityIds: string[];
+    attemptedFixes: number;
+    appliedFixes: number;
+    branches: string[];
+    pullRequestUrls: string[];
+    advisoryPath?: string;
+    reportPaths?: {
+        markdown?: string;
+        html?: string;
+        approvalRequest?: string;
+    };
+    remediationPlan?: RemediationPlan;
+    history?: RunHistorySnapshot;
+    memory?: MemorySnapshot;
+    policyDecision?: PolicyDecision;
+    warnings: string[];
+}
+
+export interface RemediationAction {
+    title: string;
+    priority: 'urgent' | 'high' | 'medium' | 'low';
+    rationale: string;
+}
+
+export interface RemediationPlan {
+    riskScore: number;
+    posture: 'critical' | 'elevated' | 'guarded' | 'stable';
+    autoFixableCount: number;
+    manualCount: number;
+    exploitCount: number;
+    immediateActions: RemediationAction[];
+    manualFollowUps: string[];
+    strategicImprovements: string[];
+    summary: string;
+}
+
+export interface RunHistoryEntry {
+    timestamp: string;
+    mode: ScanMode;
+    targetPath: string;
+    repository?: string;
+    totalVulnerabilities: number;
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    appliedFixes: number;
+    attemptedFixes: number;
+    autoFixableCount: number;
+    manualCount: number;
+    riskScore: number;
+}
+
+export interface RunHistorySnapshot {
+    latest: RunHistoryEntry;
+    previous?: RunHistoryEntry;
+    trend: 'improving' | 'worsening' | 'unchanged' | 'first-run';
+}
+
+export interface MemoryHotspot {
+    packageName: string;
+    occurrences: number;
+    lastSeverity: Severity;
+}
+
+export interface MemorySnapshot {
+    repoKey: string;
+    runCount: number;
+    topHotspots: MemoryHotspot[];
+}
+
+export interface PolicyDecision {
+    shouldBlockFixes: boolean;
+    shouldFailPipeline: boolean;
+    exitCode: number;
+    reasons: string[];
+    approvalRequired: boolean;
+    approvalSatisfied: boolean;
 }

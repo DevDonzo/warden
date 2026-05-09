@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-05-09T12:00:00.000Z",
+  "scanner": "snyk",
+  "vulnerabilities": [
+    {
+      "id": "CRIT-1",
+      "title": "Prototype Pollution",
+      "severity": "critical",
+      "packageName": "lodash",
+      "version": "4.17.15",
+      "fixedIn": ["4.17.21"],
+      "description": "Critical fixable issue",
+      "cvssScore": 9.8
+    },
+    {
+      "id": "HIGH-1",
+      "title": "SSRF",
+      "severity": "high",
+      "packageName": "axios",
+      "version": "0.21.0",
+      "fixedIn": ["0.21.1"],
+      "description": "High fixable issue",
+      "cvssScore": 7.5
+    },
+    {
+      "id": "MED-1",
+      "title": "DoS",
+      "severity": "medium",
+      "packageName": "minimist",
+      "version": "1.2.0",
+      "fixedIn": [],
+      "description": "Manual issue",
+      "cvssScore": 5.0
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "critical": 1,
+    "high": 1,
+    "medium": 1,
+    "low": 0
+  }
+}

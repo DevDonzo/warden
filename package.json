@@ -1,6 +1,6 @@
 {
   "name": "@devdonzo/warden",
-  "version": "1.3.0",
+  "version": "1.6.0",
   "description": "Autonomous SRE & Security Orchestration Agent - The Warden of your Codebase",
   "main": "dist/index.js",
   "bin": {
@@ -8,12 +8,14 @@
   },
   "files": [
     "dist/",
+    "assets/",
     "README.md",
     "LICENSE",
     "docs/CHANGELOG.md"
   ],
   "scripts": {
     "test": "jest",
+    "test:ci": "jest --runInBand --coverage",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "build": "tsc",

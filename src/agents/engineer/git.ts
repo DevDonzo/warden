@@ -58,6 +58,15 @@ export class GitManager {
         }
     }
 
+    async getCurrentBranch(): Promise<string> {
+        return this.exec('git rev-parse --abbrev-ref HEAD');
+    }
+
+    async hasUncommittedChanges(): Promise<boolean> {
+        const status = await this.exec('git status --porcelain');
+        return status.trim().length > 0;
+    }
+
     /**
      * Stage all changes
      */
@@ -80,8 +89,7 @@ export class GitManager {
      */
     async revertChanges(): Promise<void> {
         logger.info('Reverting changes...');
-        await this.exec('git checkout .');
-        await this.exec('git clean -fd');
+        await this.exec('git restore .');
     }
 
     /**

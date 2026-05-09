@@ -7,6 +7,7 @@
  */
 
 import { logger } from '../utils/logger';
+import { Ecosystem } from '../types';
 
 /**
  * The canonical scan result shape used across all scanners.
@@ -21,6 +22,7 @@ export interface ScannerVulnerability {
     fixedIn?: string[];
     description?: string;
     cvssScore?: number;
+    ecosystem?: Ecosystem;
     // DAST-specific (optional)
     targetHost?: string;
     targetPort?: number;
