@@ -1,6 +1,6 @@
 {
   "name": "@devdonzo/warden",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Autonomous SRE & Security Orchestration Agent - The Warden of your Codebase",
   "main": "dist/index.js",
   "bin": {
@@ -54,7 +54,7 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DevDonzo/warden.git"
+    "url": "git+https://github.com/DevDonzo/warden.git"
   },
   "homepage": "https://warden-cli.vercel.app",
   "bugs": {
