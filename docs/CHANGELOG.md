@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+- **Local Warden Console**:
+  - Running `warden` now opens a local GUI console by default
+  - Added `warden console` and `warden ui` commands
+  - Console visualizes scan posture, risk score, findings, baseline deltas, run history, memory hotspots, and artifact readiness
+  - Added a branded terminal banner for the main CLI flow
 - **Security Baselines**:
   - `warden baseline --create` creates `.warden-baseline.json` from current scan results
   - `warden baseline --check --severity <level>` compares current findings against accepted risk
@@ -164,7 +169,7 @@ This release focuses on production readiness with major refactoring for code con
   - Complete CLI usage examples
   - Environment variables reference
   - Exit codes documentation
-  
+
 ### 🔧 Changed
 
 - **Unified Logging System** - Replaced all `console.log/warn/error` calls with centralized logger utility across all agents:

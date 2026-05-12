@@ -51,6 +51,14 @@ Validate the environment:
 warden validate
 ```
 
+Open the local Warden console:
+
+```bash
+warden
+# or
+warden console
+```
+
 Run a local dry-run dependency scan:
 
 ```bash
@@ -98,6 +106,8 @@ warden dast https://your-api.example.com --dry-run
 
 ```bash
 warden scan [repository-or-path]
+warden console
+warden ui
 warden dast <target>
 warden validate
 warden doctor

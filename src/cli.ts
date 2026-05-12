@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { logger } from './utils/logger';
 import { validator } from './utils/validator';
+import { printWardenBanner } from './utils/banner';
 import {
     DEFAULT_MIN_SEVERITY,
     SCAN_RESULTS_PATH,
@@ -28,6 +29,14 @@ program
     .name('warden')
     .description('Warden - Autonomous SRE & Security Orchestration Agent')
     .version(version);
+
+program.action(async () => {
+    await launchWardenConsole({
+        host: '127.0.0.1',
+        port: 8787,
+        open: true,
+    });
+});
 
 program
     .command('scan')
@@ -60,8 +69,8 @@ program
                 logger.setQuiet(true);
             }
 
-            if (!options.json) {
-                logger.header('🛡️  WARDEN | Autonomous Security Orchestrator');
+            if (!options.json && !logger.isQuiet()) {
+                printWardenBanner(version);
             }
 
             // Determine target path
@@ -386,6 +395,21 @@ program
             logger.error('Baseline command failed', error);
             process.exit(1);
         }
+    });
+
+program
+    .command('console')
+    .alias('ui')
+    .description('Open the Warden local GUI console')
+    .option('--host <host>', 'Host to bind the console server', '127.0.0.1')
+    .option('--port <number>', 'Preferred console port', '8787')
+    .option('--no-open', 'Start the console server without opening a browser')
+    .action(async (options) => {
+        await launchWardenConsole({
+            host: options.host,
+            port: parsePort(options.port),
+            open: options.open,
+        });
     });
 
 program
@@ -756,4 +780,56 @@ function printBaselineDeltaList(
 
 function formatRiskDelta(delta: number): string {
     return delta > 0 ? `+${delta}` : String(delta);
+}
+
+function parsePort(value: string): number {
+    const port = Number(value);
+
+    if (!Number.isInteger(port) || port < 0 || port > 65535) {
+        throw new Error(`Invalid port "${value}". Expected a number from 0 to 65535.`);
+    }
+
+    return port;
+}
+
+async function launchWardenConsole(options: {
+    host: string;
+    port: number;
+    open: boolean;
+}): Promise<void> {
+    try {
+        if (!logger.isQuiet()) {
+            printWardenBanner(version);
+        }
+
+        const { startWardenConsole } = await import('./utils/console');
+        const consoleServer = await startWardenConsole({
+            host: options.host,
+            port: options.port,
+            open: options.open,
+        });
+
+        logger.success(`Warden console listening at ${consoleServer.url}`);
+        logger.info(
+            options.open ? 'Opened the local console in your browser.' : 'Browser launch skipped.'
+        );
+        logger.info('Press Ctrl+C to stop the console.');
+
+        let stopping = false;
+        const stop = async () => {
+            if (stopping) {
+                return;
+            }
+
+            stopping = true;
+            await consoleServer.close();
+            process.exit(0);
+        };
+
+        process.once('SIGINT', stop);
+        process.once('SIGTERM', stop);
+    } catch (error: any) {
+        logger.error('Failed to start Warden console', error);
+        process.exit(1);
+    }
 }
