@@ -7,7 +7,7 @@ describe('bootstrap', () => {
     it('renders a workflow with the requested scanner and severity', () => {
         const workflow = renderGitHubActionsWorkflow({
             scanner: 'npm-audit',
-            severity: 'critical'
+            severity: 'critical',
         });
 
         expect(workflow).toContain('name: Warden Security Patrol');
@@ -21,7 +21,7 @@ describe('bootstrap', () => {
         const result = bootstrapGitHubActions({
             targetDir: tempDir,
             scanner: 'all',
-            severity: 'medium'
+            severity: 'medium',
         });
 
         expect(fs.existsSync(result.workflowPath)).toBe(true);
@@ -30,7 +30,7 @@ describe('bootstrap', () => {
         const second = bootstrapGitHubActions({
             targetDir: tempDir,
             scanner: 'snyk',
-            severity: 'high'
+            severity: 'high',
         });
 
         expect(second.skipped).toContain(result.workflowPath);

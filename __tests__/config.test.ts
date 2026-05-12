@@ -28,7 +28,7 @@ describe('ConfigManager', () => {
         it('should load config from file when it exists', () => {
             const customConfig = {
                 scanner: { primary: 'npm-audit' },
-                fixes: { maxPerRun: 5 }
+                fixes: { maxPerRun: 5 },
             };
             fs.writeFileSync(testConfigPath, JSON.stringify(customConfig));
 
@@ -67,7 +67,7 @@ describe('ConfigManager', () => {
                 maxPerRun: 10,
                 minSeverity: 'critical',
                 autoMerge: true,
-                branchPrefix: 'custom/prefix'
+                branchPrefix: 'custom/prefix',
             });
 
             const fixes = manager.get('fixes');
@@ -100,7 +100,7 @@ describe('ConfigManager', () => {
                 primary: 'invalid-scanner' as any,
                 fallback: true,
                 timeout: 300000,
-                retries: 3
+                retries: 3,
             });
 
             const result = manager.validate();
@@ -114,7 +114,7 @@ describe('ConfigManager', () => {
                 maxPerRun: 1,
                 minSeverity: 'invalid' as any,
                 autoMerge: false,
-                branchPrefix: 'warden/fix'
+                branchPrefix: 'warden/fix',
             });
 
             const result = manager.validate();
@@ -128,7 +128,7 @@ describe('ConfigManager', () => {
                 maxPerRun: 0,
                 minSeverity: 'high',
                 autoMerge: false,
-                branchPrefix: 'warden/fix'
+                branchPrefix: 'warden/fix',
             });
 
             const result = manager.validate();
@@ -141,7 +141,7 @@ describe('ConfigManager', () => {
             manager.set('logging', {
                 level: 'trace' as any,
                 file: true,
-                console: true
+                console: true,
             });
 
             const result = manager.validate();
@@ -154,7 +154,7 @@ describe('ConfigManager', () => {
             manager.set('policy', {
                 failOnSeverity: 'invalid' as any,
                 failOnPosture: 'bad' as any,
-                requireApprovalAboveSeverity: 'nope' as any
+                requireApprovalAboveSeverity: 'nope' as any,
             });
 
             const result = manager.validate();
@@ -172,7 +172,7 @@ describe('ConfigManager', () => {
                 maxPerRun: 3,
                 minSeverity: 'medium',
                 autoMerge: false,
-                branchPrefix: 'warden/fix'
+                branchPrefix: 'warden/fix',
             });
 
             manager.save(testConfigPath);

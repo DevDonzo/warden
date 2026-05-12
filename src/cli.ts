@@ -6,9 +6,16 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { logger } from './utils/logger';
 import { validator } from './utils/validator';
+import {
+    DEFAULT_MIN_SEVERITY,
+    SCAN_RESULTS_PATH,
+    SEVERITY_LEVELS,
+    WARDEN_BASELINE_FILE,
+} from './constants';
+import { BaselineComparison, BaselineFindingDelta, Severity } from './types';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ quiet: true });
 
 // Read version from package.json
 const packageJsonPath = path.resolve(__dirname, '../package.json');
@@ -65,7 +72,7 @@ program
             if (repository) {
                 if (repository.startsWith('http') || repository.includes('github.com')) {
                     isRemote = true;
-                    
+
                     // Validate and sanitize repository URL
                     const repoValidation = validator.validateRepositoryUrl(repository);
                     if (!repoValidation.valid) {
@@ -73,13 +80,13 @@ program
                         validator.printValidationResults(repoValidation);
                         process.exit(1);
                     }
-                    
+
                     const sanitized = validator.sanitizeRepositoryUrl(repository);
                     if (!sanitized) {
                         logger.error(`Failed to sanitize repository URL: ${repository}`);
                         process.exit(1);
                     }
-                    
+
                     sanitizedRepo = sanitized;
                     logger.info(`Target: Remote repository ${sanitizedRepo}`);
                 } else {
@@ -97,7 +104,9 @@ program
                 validator.printValidationResults(validationResult);
 
                 if (!validationResult.valid) {
-                    logger.error('Validation failed. Fix the errors above or use --skip-validation to proceed anyway.');
+                    logger.error(
+                        'Validation failed. Fix the errors above or use --skip-validation to proceed anyway.'
+                    );
                     process.exit(1);
                 }
             }
@@ -113,7 +122,7 @@ program
                 maxFixes: parseInt(options.maxFixes, 10),
                 verbose: options.verbose || false,
                 ci: options.ci || false,
-                approvalToken: options.approvalToken
+                approvalToken: options.approvalToken,
             });
 
             if (options.json) {
@@ -134,7 +143,7 @@ program
                 if (result.memory) {
                     logger.section('🧠 Memory');
                     logger.info(`Tracked Runs: ${result.memory.runCount}`);
-                    result.memory.topHotspots.forEach(hotspot => {
+                    result.memory.topHotspots.forEach((hotspot) => {
                         logger.info(
                             `${hotspot.packageName}: ${hotspot.occurrences} hit(s), last severity ${hotspot.lastSeverity}`
                         );
@@ -156,16 +165,19 @@ program
 
                 if (result.policyDecision) {
                     logger.section('🚦 Policy');
-                    logger.info(`Approval Required: ${result.policyDecision.approvalRequired ? 'yes' : 'no'}`);
-                    logger.info(`Pipeline Failure: ${result.policyDecision.shouldFailPipeline ? 'yes' : 'no'}`);
-                    result.policyDecision.reasons.forEach(reason => logger.warn(reason));
+                    logger.info(
+                        `Approval Required: ${result.policyDecision.approvalRequired ? 'yes' : 'no'}`
+                    );
+                    logger.info(
+                        `Pipeline Failure: ${result.policyDecision.shouldFailPipeline ? 'yes' : 'no'}`
+                    );
+                    result.policyDecision.reasons.forEach((reason) => logger.warn(reason));
                 }
             }
 
             if (result.policyDecision?.shouldFailPipeline) {
                 process.exit(result.policyDecision.exitCode);
             }
-
         } catch (error: any) {
             logger.error('Fatal error during scan', error);
             process.exit(1);
@@ -229,17 +241,17 @@ program
             scanner: options.scanner,
             severity: options.severity,
             createConfig: options.createConfig || false,
-            force: options.force || false
+            force: options.force || false,
         });
 
         if (result.created.length > 0) {
             logger.success('Created files:');
-            result.created.forEach(filePath => logger.info(`  ${filePath}`));
+            result.created.forEach((filePath) => logger.info(`  ${filePath}`));
         }
 
         if (result.skipped.length > 0) {
             logger.warn('Skipped existing files:');
-            result.skipped.forEach(filePath => logger.info(`  ${filePath}`));
+            result.skipped.forEach((filePath) => logger.info(`  ${filePath}`));
         }
 
         logger.info('Next steps:');
@@ -274,7 +286,7 @@ program
                 logger.success('Configuration is valid!');
             } else {
                 logger.error('Configuration validation failed:');
-                result.errors.forEach(err => logger.error(`  - ${err}`));
+                result.errors.forEach((err) => logger.error(`  - ${err}`));
                 process.exit(1);
             }
         } else if (options.show) {
@@ -287,23 +299,114 @@ program
     });
 
 program
+    .command('baseline')
+    .description('Create or check a committed security baseline')
+    .option('--create', 'Create or update the baseline from scan results')
+    .option('--check', 'Compare current scan results against the baseline')
+    .option('--baseline <path>', 'Baseline file path', WARDEN_BASELINE_FILE)
+    .option('--scan-results <path>', 'Scan result JSON path', SCAN_RESULTS_PATH)
+    .option('--severity <level>', 'Minimum severity that fails a check', DEFAULT_MIN_SEVERITY)
+    .option('--json', 'Output baseline result as JSON')
+    .action(async (options) => {
+        try {
+            if (options.json) {
+                logger.setQuiet(true);
+            }
+
+            const minimumSeverity = parseSeverity(options.severity);
+            const baselinePath = path.resolve(options.baseline);
+            const scanResultsPath = path.resolve(options.scanResults);
+            const {
+                compareBaseline,
+                describeFinding,
+                hasBaselineRegression,
+                readBaseline,
+                readScanResult,
+                writeBaseline,
+            } = await import('./utils/baseline');
+            const scanResult = readScanResult(scanResultsPath);
+
+            if (options.create && options.check) {
+                logger.error('Choose either --create or --check, not both.');
+                process.exit(1);
+            }
+
+            if (options.create) {
+                const baseline = writeBaseline(scanResult, baselinePath);
+
+                if (options.json) {
+                    console.log(JSON.stringify(baseline, null, 2));
+                } else {
+                    logger.header('Warden Baseline Created');
+                    logger.success(`Baseline: ${baselinePath}`);
+                    logger.info(`Findings: ${baseline.findings.length}`);
+                    logger.info(`Risk Score: ${baseline.riskScore}/100`);
+                    logger.info(
+                        'Commit this file to make accepted risk explicit for future CI checks.'
+                    );
+                }
+                return;
+            }
+
+            const baseline = readBaseline(baselinePath);
+            const comparison = compareBaseline(scanResult, baseline);
+            const failed = hasBaselineRegression(comparison, minimumSeverity);
+
+            if (options.json) {
+                console.log(JSON.stringify({ failed, minimumSeverity, comparison }, null, 2));
+            } else {
+                printBaselineComparison(comparison, minimumSeverity);
+                printBaselineDeltaList('New Findings', comparison.newFindings, describeFinding);
+                printBaselineDeltaList(
+                    'Worsened Findings',
+                    comparison.worsenedFindings,
+                    describeFinding
+                );
+                printBaselineDeltaList(
+                    'Resolved Findings',
+                    comparison.resolvedFindings,
+                    describeFinding
+                );
+
+                if (failed) {
+                    logger.error(
+                        `Baseline regression detected at or above ${minimumSeverity} severity.`
+                    );
+                } else {
+                    logger.success(
+                        `No baseline regression at or above ${minimumSeverity} severity.`
+                    );
+                }
+            }
+
+            if (failed) {
+                process.exit(2);
+            }
+        } catch (error: any) {
+            logger.error('Baseline command failed', error);
+            process.exit(1);
+        }
+    });
+
+program
     .command('status')
     .description('Show Warden status and recent scan history')
     .action(async () => {
         logger.header('📊 Warden Status');
-        
+
         // Check for scan results
         const fs = await import('fs');
         const path = await import('path');
         const scanResultsPath = path.join(process.cwd(), 'scan-results');
-        
+
         if (fs.existsSync(scanResultsPath)) {
-            const files = fs.readdirSync(scanResultsPath)
-                .filter(f => f.endsWith('.json'))
+            const files = fs
+                .readdirSync(scanResultsPath)
+                .filter((f) => f.endsWith('.json'))
                 .sort()
                 .reverse()
                 .slice(0, 5);
-            
+
             if (files.length > 0) {
                 logger.section('Recent Scans');
                 for (const file of files) {
@@ -324,7 +427,7 @@ program
         } else {
             logger.info('No scan results directory found. Run "warden scan" first.');
         }
-        
+
         // Check configuration
         logger.section('Configuration');
         const configPath = path.join(process.cwd(), '.wardenrc.json');
@@ -333,7 +436,7 @@ program
         } else {
             logger.warn('  No .wardenrc.json (using defaults)');
         }
-        
+
         // Check environment
         logger.section('Environment');
         logger.info(`  GITHUB_TOKEN: ${process.env.GITHUB_TOKEN ? '✓ Set' : '✗ Not set'}`);
@@ -347,15 +450,15 @@ program
     .option('--dry-run', 'Show what would be deleted without deleting')
     .action(async (options) => {
         logger.header('🧹 Cleaning Generated Files');
-        
+
         const fs = await import('fs');
         const path = await import('path');
-        
+
         const dirsToClean = ['scan-results', 'logs'];
         const filesToClean = options.all ? ['.wardenrc.json'] : [];
-        
+
         let cleaned = 0;
-        
+
         for (const dir of dirsToClean) {
             const dirPath = path.join(process.cwd(), dir);
             if (fs.existsSync(dirPath)) {
@@ -368,7 +471,7 @@ program
                 cleaned++;
             }
         }
-        
+
         for (const file of filesToClean) {
             const filePath = path.join(process.cwd(), file);
             if (fs.existsSync(filePath)) {
@@ -381,7 +484,7 @@ program
                 cleaned++;
             }
         }
-        
+
         if (cleaned === 0) {
             logger.info('Nothing to clean.');
         } else if (options.dryRun) {
@@ -396,13 +499,13 @@ program
     .description('Diagnose common issues and suggest fixes')
     .action(async () => {
         logger.header('🩺 Warden Doctor');
-        
+
         const { execSync } = await import('child_process');
         const fs = await import('fs');
         const path = await import('path');
-        
+
         let issues = 0;
-        
+
         // Check Node version
         logger.section('Node.js');
         try {
@@ -418,7 +521,7 @@ program
             logger.error('  Could not detect Node version');
             issues++;
         }
-        
+
         // Check Git
         logger.section('Git');
         try {
@@ -428,7 +531,7 @@ program
             logger.error('  Git not found');
             issues++;
         }
-        
+
         // Check npm
         logger.section('npm');
         try {
@@ -438,7 +541,7 @@ program
             logger.error('  npm not found');
             issues++;
         }
-        
+
         // Check Snyk
         logger.section('Snyk CLI');
         try {
@@ -447,7 +550,7 @@ program
         } catch {
             logger.warn('  Snyk CLI not found (optional, will use npm audit)');
         }
-        
+
         // Check tokens
         logger.section('Tokens');
         if (process.env.GITHUB_TOKEN) {
@@ -455,13 +558,13 @@ program
         } else {
             logger.warn('  GITHUB_TOKEN not set (required for PR creation)');
         }
-        
+
         if (process.env.SNYK_TOKEN) {
             logger.success('  SNYK_TOKEN set ✓');
         } else {
             logger.warn('  SNYK_TOKEN not set (required for Snyk scanner)');
         }
-        
+
         // Check project
         logger.section('Project');
         const pkgPath = path.join(process.cwd(), 'package.json');
@@ -471,7 +574,7 @@ program
             logger.error('  No package.json found');
             issues++;
         }
-        
+
         // Summary
         logger.section('Summary');
         if (issues === 0) {
@@ -521,7 +624,7 @@ program
             const validation = configManager.validateDastConfig();
             if (!validation.valid) {
                 logger.error('DAST configuration validation failed:');
-                validation.errors.forEach(err => logger.error(`  - ${err}`));
+                validation.errors.forEach((err) => logger.error(`  - ${err}`));
                 process.exit(1);
             }
 
@@ -530,7 +633,7 @@ program
             if (!targetConfig) {
                 logger.error(`Target "${target}" not found in configuration.`);
                 logger.info('Available targets:');
-                dastConfig.targets.forEach(t => {
+                dastConfig.targets.forEach((t) => {
                     logger.info(`  - ${t.url} (${t.authorized ? 'authorized' : 'NOT AUTHORIZED'})`);
                 });
                 process.exit(1);
@@ -593,9 +696,8 @@ program
                 maxFixes: 1,
                 verbose: options.verbose || false,
                 scanMode: 'dast',
-                dastTarget: target
+                dastTarget: target,
             });
-
         } catch (error: any) {
             logger.error('Fatal error during DAST scan', error);
             process.exit(1);
@@ -604,3 +706,54 @@ program
 
 // Parse arguments
 program.parse();
+
+function parseSeverity(value: string): Severity {
+    if ((SEVERITY_LEVELS as readonly string[]).includes(value)) {
+        return value as Severity;
+    }
+
+    throw new Error(`Invalid severity "${value}". Expected one of: ${SEVERITY_LEVELS.join(', ')}`);
+}
+
+function printBaselineComparison(comparison: BaselineComparison, minimumSeverity: Severity): void {
+    logger.header('Warden Baseline Check');
+    logger.info(`Gate Severity: ${minimumSeverity}`);
+    logger.info(`Baseline Risk: ${comparison.baselineRiskScore}/100`);
+    logger.info(`Current Risk: ${comparison.currentRiskScore}/100`);
+    logger.info(`Risk Delta: ${formatRiskDelta(comparison.riskScoreDelta)}`);
+    logger.info(`New: ${comparison.summary.new}`);
+    logger.info(`Worsened: ${comparison.summary.worsened}`);
+    logger.info(`Resolved: ${comparison.summary.resolved}`);
+    logger.info(`Unchanged: ${comparison.summary.unchanged}`);
+}
+
+function printBaselineDeltaList(
+    title: string,
+    deltas: BaselineFindingDelta[],
+    describeFinding: (finding: NonNullable<BaselineFindingDelta['current']>) => string
+): void {
+    if (deltas.length === 0) {
+        return;
+    }
+
+    logger.section(title);
+    deltas.slice(0, 10).forEach((delta) => {
+        const finding = delta.current || delta.baseline;
+        if (!finding) {
+            return;
+        }
+
+        const severitySuffix = delta.severityChanged
+            ? ` (${delta.severityChanged.from} -> ${delta.severityChanged.to})`
+            : '';
+        logger.info(`  - ${describeFinding(finding)}${severitySuffix}`);
+    });
+
+    if (deltas.length > 10) {
+        logger.info(`  ...and ${deltas.length - 10} more`);
+    }
+}
+
+function formatRiskDelta(delta: number): string {
+    return delta > 0 ? `+${delta}` : String(delta);
+}

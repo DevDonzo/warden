@@ -26,7 +26,7 @@ describe('RunHistoryService', () => {
             attemptedFixes: 2,
             autoFixableCount: 3,
             manualCount: 2,
-            riskScore: 90
+            riskScore: 90,
         };
 
         const second: RunHistoryEntry = {
@@ -41,7 +41,7 @@ describe('RunHistoryService', () => {
             attemptedFixes: 2,
             autoFixableCount: 1,
             manualCount: 1,
-            riskScore: 40
+            riskScore: 40,
         };
 
         expect(service.append(first).trend).toBe('first-run');

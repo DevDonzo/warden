@@ -161,11 +161,16 @@ export class HtmlReportGenerator {
         </div>
 
         <section class="vulnerabilities">
-            ${result.vulnerabilities.length === 0 ? `
+            ${
+                result.vulnerabilities.length === 0
+                    ? `
                 <div class="no-issues">
                     ✅ No vulnerabilities found. Your code is clean!
                 </div>
-            ` : result.vulnerabilities.map(v => `
+            `
+                    : result.vulnerabilities
+                          .map(
+                              (v) => `
                 <div class="vuln-card ${v.severity}">
                     <div class="vuln-header">
                         <div class="vuln-title">${v.title}</div>
@@ -190,7 +195,10 @@ export class HtmlReportGenerator {
                         </div>
                     </div>
                 </div>
-            `).join('')}
+            `
+                          )
+                          .join('')
+            }
         </section>
     </div>
 </body>

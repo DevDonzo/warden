@@ -19,7 +19,7 @@ export class Validator {
         return {
             valid,
             errors: [],
-            warnings: []
+            warnings: [],
         };
     }
 
@@ -57,14 +57,14 @@ export class Validator {
             // Handle HTTPS URLs
             if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
                 const url = new URL(trimmed);
-                
+
                 // Only support GitHub for now
                 if (!url.hostname.includes('github.com')) {
                     return null;
                 }
 
                 // Extract owner/repo from pathname
-                const pathParts = url.pathname.split('/').filter(p => p.length > 0);
+                const pathParts = url.pathname.split('/').filter((p) => p.length > 0);
                 if (pathParts.length >= 2) {
                     const owner = pathParts[0];
                     const repo = pathParts[1].replace(/\.git$/, '');
@@ -93,7 +93,12 @@ export class Validator {
 
             // If it's a local file path, return as-is
             // Check for path-like characteristics: starts with ./ or / or ~
-            if (trimmed.startsWith('./') || trimmed.startsWith('../') || trimmed.startsWith('/') || trimmed.startsWith('~')) {
+            if (
+                trimmed.startsWith('./') ||
+                trimmed.startsWith('../') ||
+                trimmed.startsWith('/') ||
+                trimmed.startsWith('~')
+            ) {
                 return trimmed;
             }
 
@@ -127,7 +132,9 @@ export class Validator {
         const sanitized = this.sanitizeRepositoryUrl(repo);
         if (!sanitized) {
             result.errors.push(`Invalid repository format: ${repo}`);
-            result.errors.push('Expected formats: https://github.com/owner/repo, git@github.com:owner/repo.git, or owner/repo');
+            result.errors.push(
+                'Expected formats: https://github.com/owner/repo, git@github.com:owner/repo.git, or owner/repo'
+            );
             result.valid = false;
             return result;
         }
@@ -203,7 +210,9 @@ export class Validator {
             // Check format: warden/fix-{package-name} or warden/{type}-{description}
             const wardenPattern = /^warden\/(fix|feat|chore|docs|refactor|test)-[a-zA-Z0-9._-]+$/;
             if (!wardenPattern.test(trimmed)) {
-                result.warnings.push('Warden branch should follow format: warden/{type}-{description}');
+                result.warnings.push(
+                    'Warden branch should follow format: warden/{type}-{description}'
+                );
                 result.warnings.push('Valid types: fix, feat, chore, docs, refactor, test');
             }
 
@@ -227,7 +236,8 @@ export class Validator {
         }
 
         // Remove control characters and spaces
-        let sanitized = branchName.trim()
+        let sanitized = branchName
+            .trim()
             .replace(/[\x00-\x1f\x7f ]/g, '-')
             .replace(/[~^:?*\[\\]/g, '-')
             .replace(/\.lock$/g, '')
@@ -241,10 +251,7 @@ export class Validator {
         }
 
         // Clean up other patterns
-        sanitized = sanitized
-            .replace(/\.\.+/g, '.')
-            .replace(/-+/g, '-')
-            .toLowerCase();
+        sanitized = sanitized.replace(/\.\.+/g, '.').replace(/-+/g, '-').toLowerCase();
 
         // Ensure it doesn't exceed length
         const maxDescLength = 200;
@@ -295,7 +302,9 @@ export class Validator {
 
         // Optional but recommended
         if (!process.env.SNYK_TOKEN) {
-            result.warnings.push('SNYK_TOKEN not set. Snyk may require authentication for some features.');
+            result.warnings.push(
+                'SNYK_TOKEN not set. Snyk may require authentication for some features.'
+            );
         }
 
         if (!process.env.GITHUB_OWNER) {
@@ -337,7 +346,9 @@ export class Validator {
         }
 
         if (!this.commandExists('pip-audit')) {
-            result.warnings.push('pip-audit is not installed. Install with: python3 -m pip install pip-audit');
+            result.warnings.push(
+                'pip-audit is not installed. Install with: python3 -m pip install pip-audit'
+            );
         }
 
         // Check for Snyk (optional but recommended)
@@ -373,7 +384,7 @@ export class Validator {
             const remotes = execSync('git remote -v', {
                 cwd: targetPath,
                 stdio: 'pipe',
-                encoding: 'utf-8'
+                encoding: 'utf-8',
             });
 
             if (!remotes || remotes.trim().length === 0) {
@@ -384,13 +395,14 @@ export class Validator {
             const status = execSync('git status --porcelain', {
                 cwd: targetPath,
                 stdio: 'pipe',
-                encoding: 'utf-8'
+                encoding: 'utf-8',
             });
 
             if (status && status.trim().length > 0) {
-                result.warnings.push('Repository has uncommitted changes. These will not be included in automated fixes.');
+                result.warnings.push(
+                    'Repository has uncommitted changes. These will not be included in automated fixes.'
+                );
             }
-
         } catch (error: any) {
             result.errors.push(`Git validation failed: ${error.message}`);
             result.valid = false;
@@ -435,7 +447,9 @@ export class Validator {
                 }
 
                 if (!packageJson.scripts || !packageJson.scripts.test) {
-                    result.warnings.push('No test script found in package.json. Verification will be skipped.');
+                    result.warnings.push(
+                        'No test script found in package.json. Verification will be skipped.'
+                    );
                 }
             } catch (error: any) {
                 result.errors.push(`Invalid package.json: ${error.message}`);
@@ -455,7 +469,9 @@ export class Validator {
                     result.warnings.push('requirements.txt is empty');
                 }
                 if (!fs.existsSync(path.join(targetPath, 'tests'))) {
-                    result.warnings.push('No tests/ directory found. Python verification may be skipped.');
+                    result.warnings.push(
+                        'No tests/ directory found. Python verification may be skipped.'
+                    );
                 }
             } else if (fs.existsSync(pyprojectPath)) {
                 result.warnings.push(
@@ -483,7 +499,7 @@ export class Validator {
             this.validateEnvironment(),
             this.validateDependencies(),
             this.validateGitRepository(targetPath),
-            this.validateProjectManifest(targetPath)
+            this.validateProjectManifest(targetPath),
         ];
 
         const combined = this.createResult();
@@ -505,12 +521,12 @@ export class Validator {
     printValidationResults(result: ValidationResult) {
         if (result.errors.length > 0) {
             logger.error('Validation failed with the following errors:');
-            result.errors.forEach(err => logger.error(`  ✗ ${err}`));
+            result.errors.forEach((err) => logger.error(`  ✗ ${err}`));
         }
 
         if (result.warnings.length > 0) {
             logger.warn('Validation warnings:');
-            result.warnings.forEach(warn => logger.warn(`  ⚠ ${warn}`));
+            result.warnings.forEach((warn) => logger.warn(`  ⚠ ${warn}`));
         }
 
         if (result.valid && result.errors.length === 0) {

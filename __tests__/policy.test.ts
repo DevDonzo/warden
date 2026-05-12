@@ -7,7 +7,7 @@ describe('policy', () => {
         const plan = buildRemediationPlan(fixture as any, {
             appliedFixes: 0,
             attemptedFixes: 1,
-            warnings: []
+            warnings: [],
         });
 
         const decision = evaluatePolicy(
@@ -18,8 +18,8 @@ describe('policy', () => {
                 policy: {
                     failOnSeverity: 'critical',
                     failOnPosture: 'critical',
-                    requireApprovalAboveSeverity: 'high'
-                }
+                    requireApprovalAboveSeverity: 'high',
+                },
             } as any
         );
 
@@ -32,7 +32,7 @@ describe('policy', () => {
         const plan = buildRemediationPlan(fixture as any, {
             appliedFixes: 0,
             attemptedFixes: 0,
-            warnings: []
+            warnings: [],
         });
 
         const decision = evaluatePolicy(
@@ -43,8 +43,8 @@ describe('policy', () => {
                 policy: {
                     failOnSeverity: 'high',
                     failOnPosture: 'elevated',
-                    requireApprovalAboveSeverity: 'critical'
-                }
+                    requireApprovalAboveSeverity: 'critical',
+                },
             } as any
         );
 

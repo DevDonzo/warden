@@ -52,21 +52,31 @@ export async function runWarden(options: WardenOptions): Promise<WardenRunResult
     }
 
     // ── 2. Select and execute the appropriate workflow ────────────────────────
-    const workflowResult = options.scanMode === 'dast'
-        ? await new DastWorkflow().run(options)
-        : await new SastWorkflow().run(options);
+    const workflowResult =
+        options.scanMode === 'dast'
+            ? await new DastWorkflow().run(options)
+            : await new SastWorkflow().run(options);
 
     if (workflowResult.scanResult) {
         const remediationPlan = buildRemediationPlan(workflowResult.scanResult, workflowResult);
         workflowResult.remediationPlan = remediationPlan;
 
         const config = getConfig().getConfig();
-        const policyDecision = evaluatePolicy(workflowResult.scanResult, remediationPlan, options, config);
+        const policyDecision = evaluatePolicy(
+            workflowResult.scanResult,
+            remediationPlan,
+            options,
+            config
+        );
         workflowResult.policyDecision = policyDecision;
 
         workflowResult.reportPaths = {
-            markdown: writeMarkdownReport(workflowResult.scanResult, workflowResult, remediationPlan),
-            html: writeHtmlReport(workflowResult.scanResult)
+            markdown: writeMarkdownReport(
+                workflowResult.scanResult,
+                workflowResult,
+                remediationPlan
+            ),
+            html: writeHtmlReport(workflowResult.scanResult),
         };
 
         if (policyDecision.approvalRequired && !policyDecision.approvalSatisfied) {
@@ -96,14 +106,14 @@ export async function runWarden(options: WardenOptions): Promise<WardenRunResult
                 remediationPlan.posture === 'critical'
                     ? 'error'
                     : remediationPlan.posture === 'elevated'
-                    ? 'warning'
-                    : 'success',
+                      ? 'warning'
+                      : 'success',
             details: {
                 repository: workflowResult.repository || workflowResult.targetPath,
                 vulnerabilities: workflowResult.scanResult.summary.total,
                 fixed: workflowResult.appliedFixes,
-                prUrl: workflowResult.pullRequestUrls[0]
-            }
+                prUrl: workflowResult.pullRequestUrls[0],
+            },
         });
     }
 

@@ -5,6 +5,17 @@ All notable changes to Warden will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Security Baselines**:
+  - `warden baseline --create` creates `.warden-baseline.json` from current scan results
+  - `warden baseline --check --severity <level>` compares current findings against accepted risk
+  - Baseline checks detect new findings, resolved findings, and severity regressions
+  - Baseline checks exit with code `2` when a new or worsened finding crosses the configured gate
+  - JSON output is available for CI integrations
+
 ## [1.6.0] - 2026-05-09
 
 ### ✨ Added

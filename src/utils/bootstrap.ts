@@ -38,7 +38,7 @@ export function bootstrapGitHubActions(options: BootstrapCiOptions = {}): Bootst
             workflowPath,
             renderGitHubActionsWorkflow({
                 scanner: options.scanner || 'npm-audit',
-                severity: options.severity || 'high'
+                severity: options.severity || 'high',
             }),
             'utf-8'
         );
@@ -58,7 +58,7 @@ export function bootstrapGitHubActions(options: BootstrapCiOptions = {}): Bootst
         workflowPath,
         configPath: options.createConfig ? configPath : undefined,
         created,
-        skipped
+        skipped,
     };
 }
 

@@ -117,7 +117,7 @@ export class ScannerRegistry {
         const ordered: IScanner[] = primary
             ? [
                   ...(this.scanners.has(primary) ? [this.scanners.get(primary)!] : []),
-                  ...all.filter(s => s.name !== primary)
+                  ...all.filter((s) => s.name !== primary),
               ]
             : all;
 
@@ -127,7 +127,9 @@ export class ScannerRegistry {
             try {
                 logger.info(`[ScannerRegistry] Running scanner: ${scanner.name}`);
                 const result = await scanner.scan();
-                logger.success(`[ScannerRegistry] Scanner [${scanner.name}] completed successfully`);
+                logger.success(
+                    `[ScannerRegistry] Scanner [${scanner.name}] completed successfully`
+                );
                 return result;
             } catch (error: any) {
                 const msg = `Scanner [${scanner.name}] failed: ${error.message}`;

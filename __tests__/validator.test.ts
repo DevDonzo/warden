@@ -39,7 +39,7 @@ describe('Validator', () => {
             const result = validator.validateEnvironment();
 
             expect(result.warnings.length).toBeGreaterThan(0);
-            expect(result.warnings.some(w => w.includes('SNYK_TOKEN'))).toBe(true);
+            expect(result.warnings.some((w) => w.includes('SNYK_TOKEN'))).toBe(true);
         });
     });
 
@@ -48,14 +48,14 @@ describe('Validator', () => {
             const result = validator.validateDependencies();
 
             // Git should be installed on most systems
-            const gitError = result.errors.find(e => e.includes('Git'));
+            const gitError = result.errors.find((e) => e.includes('Git'));
             expect(gitError).toBeUndefined();
         });
 
         it('should detect node installation', () => {
             const result = validator.validateDependencies();
 
-            const nodeError = result.errors.find(e => e.includes('Node.js'));
+            const nodeError = result.errors.find((e) => e.includes('Node.js'));
             expect(nodeError).toBeUndefined();
         });
     });
@@ -84,7 +84,7 @@ describe('Validator', () => {
             const result = validator.validateProjectManifest(nonExistentPath);
 
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('No supported manifest found'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('No supported manifest found'))).toBe(true);
         });
     });
 
@@ -95,7 +95,9 @@ describe('Validator', () => {
         });
 
         it('should handle HTTPS GitHub URLs with .git suffix', () => {
-            const result = validator.sanitizeRepositoryUrl('https://github.com/DevDonzo/warden.git');
+            const result = validator.sanitizeRepositoryUrl(
+                'https://github.com/DevDonzo/warden.git'
+            );
             expect(result).toBe('https://github.com/DevDonzo/warden');
         });
 
@@ -135,7 +137,9 @@ describe('Validator', () => {
         });
 
         it('should trim whitespace', () => {
-            const result = validator.sanitizeRepositoryUrl('  https://github.com/DevDonzo/warden  ');
+            const result = validator.sanitizeRepositoryUrl(
+                '  https://github.com/DevDonzo/warden  '
+            );
             expect(result).toBe('https://github.com/DevDonzo/warden');
         });
     });
@@ -162,7 +166,7 @@ describe('Validator', () => {
         it('should reject invalid formats', () => {
             const result = validator.validateRepositoryUrl('invalid!!!url');
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('Invalid repository format'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('Invalid repository format'))).toBe(true);
         });
 
         it('should reject URLs with spaces', () => {
@@ -174,7 +178,7 @@ describe('Validator', () => {
             const longUrl = 'https://github.com/' + 'a'.repeat(500) + '/repo';
             const result = validator.validateRepositoryUrl(longUrl);
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('too long'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('too long'))).toBe(true);
         });
     });
 
@@ -192,36 +196,38 @@ describe('Validator', () => {
         it('should reject empty string', () => {
             const result = validator.validateBranchName('');
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('cannot be empty'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('cannot be empty'))).toBe(true);
         });
 
         it('should reject branch names with spaces', () => {
             const result = validator.validateBranchName('warden/fix my package');
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('cannot contain control characters or spaces'))).toBe(true);
+            expect(
+                result.errors.some((e) => e.includes('cannot contain control characters or spaces'))
+            ).toBe(true);
         });
 
         it('should reject branch names starting with /', () => {
             const result = validator.validateBranchName('/invalid-branch');
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('cannot start or end with /'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('cannot start or end with /'))).toBe(true);
         });
 
         it('should reject branch names ending with /', () => {
             const result = validator.validateBranchName('invalid-branch/');
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('cannot start or end with /'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('cannot start or end with /'))).toBe(true);
         });
 
         it('should reject branch names with ..', () => {
             const result = validator.validateBranchName('feature/../invalid');
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('cannot contain ".."'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('cannot contain ".."'))).toBe(true);
         });
 
         it('should reject branch names with special characters', () => {
             const invalidChars = ['~', '^', ':', '?', '*', '[', '\\'];
-            invalidChars.forEach(char => {
+            invalidChars.forEach((char) => {
                 const result = validator.validateBranchName(`invalid${char}branch`);
                 expect(result.valid).toBe(false);
             });
@@ -230,7 +236,7 @@ describe('Validator', () => {
         it('should reject branch name ending with .lock', () => {
             const result = validator.validateBranchName('branch.lock');
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('Invalid branch name format'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('Invalid branch name format'))).toBe(true);
         });
 
         it('should reject branch name that is just @', () => {
@@ -242,18 +248,18 @@ describe('Validator', () => {
             const longName = 'warden/fix-' + 'a'.repeat(300);
             const result = validator.validateBranchName(longName);
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('too long'))).toBe(true);
+            expect(result.errors.some((e) => e.includes('too long'))).toBe(true);
         });
 
         it('should warn for warden branches with incorrect format', () => {
             const result = validator.validateBranchName('warden/invalid_format');
             expect(result.warnings.length).toBeGreaterThan(0);
-            expect(result.warnings.some(w => w.includes('should follow format'))).toBe(true);
+            expect(result.warnings.some((w) => w.includes('should follow format'))).toBe(true);
         });
 
         it('should accept valid warden branch types', () => {
             const validTypes = ['fix', 'feat', 'chore', 'docs', 'refactor', 'test'];
-            validTypes.forEach(type => {
+            validTypes.forEach((type) => {
                 const result = validator.validateBranchName(`warden/${type}-description`);
                 expect(result.valid).toBe(true);
             });

@@ -74,38 +74,38 @@ const DEFAULT_CONFIG: WardenConfig = {
         primary: 'snyk',
         fallback: true,
         timeout: 300000, // 5 minutes
-        retries: 3
+        retries: 3,
     },
     fixes: {
         maxPerRun: 1,
         minSeverity: 'high',
         autoMerge: false,
-        branchPrefix: 'warden/fix'
+        branchPrefix: 'warden/fix',
     },
     github: {
         assignees: [],
         labels: ['security', 'automated'],
         reviewers: [],
-        autoAssign: true
+        autoAssign: true,
     },
     notifications: {
-        enabled: false
+        enabled: false,
     },
     logging: {
         level: 'info',
         file: true,
-        console: true
+        console: true,
     },
     policy: {
         failOnSeverity: 'critical',
         failOnPosture: 'critical',
-        requireApprovalAboveSeverity: 'critical'
+        requireApprovalAboveSeverity: 'critical',
     },
     exclude: {
         packages: [],
         vulnerabilities: [],
-        severities: []
-    }
+        severities: [],
+    },
 };
 
 export class ConfigManager {
@@ -125,7 +125,7 @@ export class ConfigManager {
             path.join(process.cwd(), '.wardenrc.json'),
             path.join(process.cwd(), '.wardenrc'),
             path.join(process.cwd(), 'warden.config.json'),
-            path.join(process.env.HOME || '~', '.wardenrc.json')
+            path.join(process.env.HOME || '~', '.wardenrc.json'),
         ];
 
         for (const configPath of possiblePaths) {
@@ -170,7 +170,7 @@ export class ConfigManager {
         const output = { ...target };
 
         if (this.isObject(target) && this.isObject(source)) {
-            Object.keys(source).forEach(key => {
+            Object.keys(source).forEach((key) => {
                 if (this.isObject(source[key])) {
                     if (!(key in target)) {
                         output[key] = source[key];
@@ -282,14 +282,16 @@ export class ConfigManager {
 
         if (
             this.config.policy.requireApprovalAboveSeverity &&
-            !['low', 'medium', 'high', 'critical'].includes(this.config.policy.requireApprovalAboveSeverity)
+            !['low', 'medium', 'high', 'critical'].includes(
+                this.config.policy.requireApprovalAboveSeverity
+            )
         ) {
             errors.push('Invalid policy.requireApprovalAboveSeverity value');
         }
 
         return {
             valid: errors.length === 0,
-            errors
+            errors,
         };
     }
 
@@ -321,20 +323,20 @@ export class ConfigManager {
                 portRange: '1-1000',
                 timing: 3,
                 options: ['-sV'],
-                outputFormat: 'xml'
+                outputFormat: 'xml',
             },
             metasploit: {
                 enabled: false,
                 mode: 'scan-only',
                 modules: [],
-                timeout: 60000
+                timeout: 60000,
             },
             safety: {
                 requireConfirmation: true,
                 authorizedTargetsOnly: true,
                 disableExploits: true,
-                maxScanDuration: 1800000
-            }
+                maxScanDuration: 1800000,
+            },
         };
     }
 
@@ -370,7 +372,9 @@ export class ConfigManager {
         if (dastConfig.nmap) {
             const validScanTypes = ['quick', 'standard', 'comprehensive', 'stealth'];
             if (!validScanTypes.includes(dastConfig.nmap.scanType)) {
-                errors.push('dast.nmap.scanType must be one of: quick, standard, comprehensive, stealth');
+                errors.push(
+                    'dast.nmap.scanType must be one of: quick, standard, comprehensive, stealth'
+                );
             }
         }
 
@@ -384,7 +388,7 @@ export class ConfigManager {
 
         return {
             valid: errors.length === 0,
-            errors
+            errors,
         };
     }
 
@@ -397,7 +401,7 @@ export class ConfigManager {
             return null;
         }
 
-        return dastConfig.targets.find(t => t.url === targetUrl) || null;
+        return dastConfig.targets.find((t) => t.url === targetUrl) || null;
     }
 }
 

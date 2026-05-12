@@ -88,10 +88,10 @@ export class SnykScanner {
                 const delay = this.retryDelayMs * Math.pow(2, attempt - 1);
                 logger.warn(
                     `${operationName} failed (attempt ${attempt}/${this.maxRetries}). ` +
-                    `Retrying in ${delay}ms... Reason: ${error.message}`
+                        `Retrying in ${delay}ms... Reason: ${error.message}`
                 );
 
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await new Promise((resolve) => setTimeout(resolve, delay));
                 return this.retryWithBackoff(fn, operationName, attempt + 1);
             }
 
@@ -106,47 +106,42 @@ export class SnykScanner {
         const errors: string[] = [];
 
         try {
-            await this.retryWithBackoff(
-                async () => {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 10000);
-                    try {
-                        await execAsync('snyk --version', {
-                            signal: controller.signal as any
-                        });
-                    } finally {
-                        clearTimeout(timeout);
-                    }
-                },
-                'Snyk CLI version check'
-            );
+            await this.retryWithBackoff(async () => {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                try {
+                    await execAsync('snyk --version', {
+                        signal: controller.signal as any,
+                    });
+                } finally {
+                    clearTimeout(timeout);
+                }
+            }, 'Snyk CLI version check');
         } catch (error: any) {
-            const errorMsg = 'Snyk CLI not found or not responding. Please install: npm install -g snyk';
+            const errorMsg =
+                'Snyk CLI not found or not responding. Please install: npm install -g snyk';
             errors.push(errorMsg);
             throw new Error(errorMsg);
         }
 
         try {
-            const result = await this.retryWithBackoff(
-                async () => {
-                    logger.watchman(`Executing Snyk scan (timeout: ${this.timeoutMs / 1000}s)...`);
-                    try {
-                        const { stdout } = await execAsync('snyk test --json', {
-                            maxBuffer: 10 * 1024 * 1024,
-                            timeout: this.timeoutMs,
-                            cwd: process.cwd() // Scan the current directory
-                        });
-                        return stdout;
-                    } catch (error: any) {
-                        if (error.stdout) return error.stdout;
-                        if (error.killed || error.signal === 'SIGTERM') {
-                            throw new Error(`Snyk scan timed out after ${this.timeoutMs / 1000}s`);
-                        }
-                        throw error;
+            const result = await this.retryWithBackoff(async () => {
+                logger.watchman(`Executing Snyk scan (timeout: ${this.timeoutMs / 1000}s)...`);
+                try {
+                    const { stdout } = await execAsync('snyk test --json', {
+                        maxBuffer: 10 * 1024 * 1024,
+                        timeout: this.timeoutMs,
+                        cwd: process.cwd(), // Scan the current directory
+                    });
+                    return stdout;
+                } catch (error: any) {
+                    if (error.stdout) return error.stdout;
+                    if (error.killed || error.signal === 'SIGTERM') {
+                        throw new Error(`Snyk scan timed out after ${this.timeoutMs / 1000}s`);
                     }
-                },
-                'Snyk security scan'
-            );
+                    throw error;
+                }
+            }, 'Snyk security scan');
 
             const scanDuration = Date.now() - startTime;
             const scanResult = this.parseSnykOutput(result);
@@ -154,12 +149,11 @@ export class SnykScanner {
             scanResult.metadata = {
                 scanDuration,
                 retryCount,
-                errors: errors.length > 0 ? errors : undefined
+                errors: errors.length > 0 ? errors : undefined,
             };
 
             logger.success(`Scan completed in ${(scanDuration / 1000).toFixed(2)}s`);
             return scanResult;
-
         } catch (error: any) {
             const errorMsg = `Snyk scan failed: ${error.message}`;
             errors.push(errorMsg);
@@ -167,7 +161,7 @@ export class SnykScanner {
                 timestamp: new Date().toISOString(),
                 vulnerabilities: [],
                 summary: { total: 0, critical: 0, high: 0, medium: 0, low: 0 },
-                metadata: { scanDuration: Date.now() - startTime, retryCount, errors }
+                metadata: { scanDuration: Date.now() - startTime, retryCount, errors },
             };
             this.saveScanResults(fallbackResult);
             throw new Error(errorMsg);
@@ -180,7 +174,7 @@ export class SnykScanner {
         try {
             data = JSON.parse(jsonOutput);
         } catch {
-            throw new Error("Failed to parse Snyk JSON output");
+            throw new Error('Failed to parse Snyk JSON output');
         }
 
         const vulnerabilities: Vulnerability[] = [];
@@ -188,7 +182,9 @@ export class SnykScanner {
 
         if (data.vulnerabilities && Array.isArray(data.vulnerabilities)) {
             for (const vuln of data.vulnerabilities) {
-                const severity = (vuln.severity || 'low').toLowerCase() as Vulnerability['severity'];
+                const severity = (
+                    vuln.severity || 'low'
+                ).toLowerCase() as Vulnerability['severity'];
                 vulnerabilities.push({
                     id: vuln.id || vuln.CVSSv3 || 'unknown',
                     title: vuln.title || 'Unknown vulnerability',
@@ -197,14 +193,18 @@ export class SnykScanner {
                     version: vuln.version || 'unknown',
                     fixedIn: vuln.fixedIn || [],
                     description: vuln.description,
-                    cvssScore: vuln.cvssScore
+                    cvssScore: vuln.cvssScore,
                 });
                 summary.total++;
                 summary[severity]++;
             }
         }
 
-        const result: ScanResult = { timestamp: new Date().toISOString(), vulnerabilities, summary };
+        const result: ScanResult = {
+            timestamp: new Date().toISOString(),
+            vulnerabilities,
+            summary,
+        };
         this.saveScanResults(result);
         return result;
     }
@@ -229,8 +229,13 @@ export class SnykScanner {
                 logger.info(`Scan results saved to: ${filepath}`);
                 logger.debug(`Latest results: ${latestPath}`);
             } catch (writeError) {
-                [tempPath, tempLatestPath].forEach(tmpFile => {
-                    if (fs.existsSync(tmpFile)) try { fs.unlinkSync(tmpFile); } catch { /* ignore */ }
+                [tempPath, tempLatestPath].forEach((tmpFile) => {
+                    if (fs.existsSync(tmpFile))
+                        try {
+                            fs.unlinkSync(tmpFile);
+                        } catch {
+                            /* ignore */
+                        }
                 });
                 throw writeError;
             }
@@ -242,13 +247,18 @@ export class SnykScanner {
 
     private validateScanResult(result: ScanResult): void {
         if (!result) throw new Error('Scan result is null or undefined');
-        if (!result.timestamp || typeof result.timestamp !== 'string') throw new Error('Invalid timestamp');
-        if (!Array.isArray(result.vulnerabilities)) throw new Error('Vulnerabilities must be an array');
-        if (!result.summary || typeof result.summary !== 'object') throw new Error('Invalid summary');
+        if (!result.timestamp || typeof result.timestamp !== 'string')
+            throw new Error('Invalid timestamp');
+        if (!Array.isArray(result.vulnerabilities))
+            throw new Error('Vulnerabilities must be an array');
+        if (!result.summary || typeof result.summary !== 'object')
+            throw new Error('Invalid summary');
     }
 
     filterHighPriority(result: ScanResult): Vulnerability[] {
-        return result.vulnerabilities.filter(v => v.severity === 'critical' || v.severity === 'high');
+        return result.vulnerabilities.filter(
+            (v) => v.severity === 'critical' || v.severity === 'high'
+        );
     }
 
     printSummary(result: ScanResult): void {

@@ -35,11 +35,13 @@ export class MemoryService {
 
             const current = repoMemory.packages[vulnerability.packageName] || {
                 occurrences: 0,
-                lastSeverity: vulnerability.severity
+                lastSeverity: vulnerability.severity,
             };
 
             current.occurrences += 1;
-            if (SEVERITY_PRIORITY[vulnerability.severity] >= SEVERITY_PRIORITY[current.lastSeverity]) {
+            if (
+                SEVERITY_PRIORITY[vulnerability.severity] >= SEVERITY_PRIORITY[current.lastSeverity]
+            ) {
                 current.lastSeverity = vulnerability.severity;
             }
 
@@ -53,19 +55,23 @@ export class MemoryService {
             repoKey,
             runCount: repoMemory.runCount,
             topHotspots: Object.entries(repoMemory.packages)
-                .map(([packageName, value]): MemoryHotspot => ({
-                    packageName,
-                    occurrences: value.occurrences,
-                    lastSeverity: value.lastSeverity
-                }))
+                .map(
+                    ([packageName, value]): MemoryHotspot => ({
+                        packageName,
+                        occurrences: value.occurrences,
+                        lastSeverity: value.lastSeverity,
+                    })
+                )
                 .sort((left, right) => {
                     if (right.occurrences !== left.occurrences) {
                         return right.occurrences - left.occurrences;
                     }
 
-                    return SEVERITY_PRIORITY[right.lastSeverity] - SEVERITY_PRIORITY[left.lastSeverity];
+                    return (
+                        SEVERITY_PRIORITY[right.lastSeverity] - SEVERITY_PRIORITY[left.lastSeverity]
+                    );
                 })
-                .slice(0, 5)
+                .slice(0, 5),
         };
     }
 

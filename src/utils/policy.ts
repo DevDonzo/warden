@@ -7,7 +7,7 @@ import { WardenConfig } from './config';
 const POSTURE_PRIORITY: Record<NonNullable<WardenConfig['policy']['failOnPosture']>, number> = {
     guarded: 1,
     elevated: 2,
-    critical: 3
+    critical: 3,
 };
 
 function posturePriority(posture: RemediationPlan['posture']): number {
@@ -59,14 +59,15 @@ export function evaluatePolicy(
         );
     }
 
-    const shouldFailPipeline = Boolean(options.ci) && reasons.some(reason => reason.includes('Pipeline gate triggered'));
+    const shouldFailPipeline =
+        Boolean(options.ci) && reasons.some((reason) => reason.includes('Pipeline gate triggered'));
     return {
         shouldBlockFixes: approvalRequired && !approvalSatisfied,
         shouldFailPipeline,
         exitCode: shouldFailPipeline ? 2 : 0,
         reasons,
         approvalRequired,
-        approvalSatisfied
+        approvalSatisfied,
     };
 }
 
@@ -87,7 +88,7 @@ export function writeApprovalRequest(
         posture: remediationPlan.posture,
         riskScore: remediationPlan.riskScore,
         reasons: decision.reasons,
-        nextStep: 'Re-run with --approval-token approved after human review.'
+        nextStep: 'Re-run with --approval-token approved after human review.',
     };
 
     fs.writeFileSync(approvalPath, JSON.stringify(payload, null, 2), 'utf-8');
@@ -96,5 +97,5 @@ export function writeApprovalRequest(
 
 function getHighestSeverity(scanResult: ScanResult): Severity | null {
     const order: Severity[] = ['critical', 'high', 'medium', 'low'];
-    return order.find(severity => scanResult.summary[severity] > 0) || null;
+    return order.find((severity) => scanResult.summary[severity] > 0) || null;
 }

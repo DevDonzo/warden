@@ -1,6 +1,6 @@
 /**
  * Warden Error Classes
- * 
+ *
  * Structured error types for better error handling and debugging.
  */
 
@@ -92,12 +92,7 @@ export class PRError extends WardenError {
     public readonly httpStatus?: number;
     public readonly rateLimited: boolean;
 
-    constructor(
-        message: string,
-        branch: string,
-        httpStatus?: number,
-        rateLimited = false
-    ) {
+    constructor(message: string, branch: string, httpStatus?: number, rateLimited = false) {
         super(message, 'PR_ERROR', !rateLimited);
         this.name = 'PRError';
         this.branch = branch;
@@ -146,12 +141,7 @@ export class ValidationError extends WardenError {
     public readonly expectedType?: string;
     public readonly receivedValue?: unknown;
 
-    constructor(
-        message: string,
-        field: string,
-        expectedType?: string,
-        receivedValue?: unknown
-    ) {
+    constructor(message: string, field: string, expectedType?: string, receivedValue?: unknown) {
         super(message, 'VALIDATION_ERROR', true);
         this.name = 'ValidationError';
         this.field = field;

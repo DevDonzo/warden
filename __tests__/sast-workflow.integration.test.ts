@@ -15,23 +15,23 @@ jest.mock('../src/utils/config', () => ({
             policy: {
                 failOnSeverity: 'critical',
                 failOnPosture: 'critical',
-                requireApprovalAboveSeverity: 'high'
-            }
-        }))
-    }))
+                requireApprovalAboveSeverity: 'high',
+            },
+        })),
+    })),
 }));
 
 jest.mock('../src/agents/watchman/snyk', () => ({
     SnykScanner: jest.fn().mockImplementation(() => ({
         test: jest.fn().mockResolvedValue(fixture),
-        printSummary: jest.fn()
-    }))
+        printSummary: jest.fn(),
+    })),
 }));
 
 jest.mock('../src/agents/watchman/npm-audit', () => ({
     NpmAuditScanner: jest.fn().mockImplementation(() => ({
-        scan: jest.fn().mockResolvedValue(fixture)
-    }))
+        scan: jest.fn().mockResolvedValue(fixture),
+    })),
 }));
 
 const diagnoseMock = jest.fn().mockResolvedValue([
@@ -43,8 +43,8 @@ const diagnoseMock = jest.fn().mockResolvedValue([
         fixInstruction: {
             packageName: 'lodash',
             currentVersion: '4.17.15',
-            targetVersion: '4.17.21'
-        }
+            targetVersion: '4.17.21',
+        },
     },
     {
         vulnerabilityId: 'HIGH-1',
@@ -54,9 +54,9 @@ const diagnoseMock = jest.fn().mockResolvedValue([
         fixInstruction: {
             packageName: 'axios',
             currentVersion: '0.21.0',
-            targetVersion: '0.21.1'
-        }
-    }
+            targetVersion: '0.21.1',
+        },
+    },
 ]);
 
 const applyFixMock = jest.fn();
@@ -64,8 +64,8 @@ const applyFixMock = jest.fn();
 jest.mock('../src/agents/engineer', () => ({
     EngineerAgent: jest.fn().mockImplementation(() => ({
         diagnose: diagnoseMock,
-        applyFix: applyFixMock
-    }))
+        applyFix: applyFixMock,
+    })),
 }));
 
 jest.mock('../src/agents/diplomat', () => ({
@@ -73,8 +73,8 @@ jest.mock('../src/agents/diplomat', () => ({
         pushBranch: jest.fn().mockResolvedValue(true),
         createPullRequest: jest.fn().mockResolvedValue('https://example.com/pr/1'),
         generatePrTitle: jest.fn().mockReturnValue('[SECURITY] Mock PR'),
-        generatePrBody: jest.fn().mockReturnValue('Mock body')
-    }))
+        generatePrBody: jest.fn().mockReturnValue('Mock body'),
+    })),
 }));
 
 describe('SastWorkflow integration', () => {
@@ -103,11 +103,11 @@ describe('SastWorkflow integration', () => {
             minSeverity: 'high',
             maxFixes: 1,
             verbose: false,
-            ci: false
+            ci: false,
         });
 
         expect(result.appliedFixes).toBe(0);
-        expect(result.warnings.some(warning => warning.includes('Approval required'))).toBe(true);
+        expect(result.warnings.some((warning) => warning.includes('Approval required'))).toBe(true);
         expect(applyFixMock).not.toHaveBeenCalled();
     });
 
@@ -130,7 +130,7 @@ describe('SastWorkflow integration', () => {
             maxFixes: 1,
             verbose: false,
             ci: false,
-            approvalToken: 'approved'
+            approvalToken: 'approved',
         });
 
         expect(result.selectedVulnerabilityIds).toEqual(['CRIT-1']);

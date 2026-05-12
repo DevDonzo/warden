@@ -6,7 +6,17 @@ import { SCAN_RESULTS_DIR } from '../constants';
 
 export function writeMarkdownReport(
     scanResult: ScanResult,
-    runResult: Pick<WardenRunResult, 'mode' | 'appliedFixes' | 'attemptedFixes' | 'warnings' | 'branches' | 'pullRequestUrls' | 'repository' | 'targetPath'>,
+    runResult: Pick<
+        WardenRunResult,
+        | 'mode'
+        | 'appliedFixes'
+        | 'attemptedFixes'
+        | 'warnings'
+        | 'branches'
+        | 'pullRequestUrls'
+        | 'repository'
+        | 'targetPath'
+    >,
     remediationPlan: RemediationPlan
 ): string {
     const outputDir = path.resolve(process.cwd(), SCAN_RESULTS_DIR);
@@ -32,34 +42,41 @@ export function writeMarkdownReport(
         '',
         '## Immediate Actions',
         '',
-        ...remediationPlan.immediateActions.map(action => `- [${action.priority}] ${action.title}: ${action.rationale}`),
+        ...remediationPlan.immediateActions.map(
+            (action) => `- [${action.priority}] ${action.title}: ${action.rationale}`
+        ),
         '',
         '## Manual Follow-Ups',
         '',
         ...(remediationPlan.manualFollowUps.length > 0
-            ? remediationPlan.manualFollowUps.map(step => `- ${step}`)
+            ? remediationPlan.manualFollowUps.map((step) => `- ${step}`)
             : ['- No manual follow-ups identified.']),
         '',
         '## Strategic Improvements',
         '',
-        ...remediationPlan.strategicImprovements.map(step => `- ${step}`),
+        ...remediationPlan.strategicImprovements.map((step) => `- ${step}`),
         '',
         '## Automation Output',
         '',
-        ...(runResult.branches.length > 0 ? runResult.branches.map(branch => `- Branch: ${branch}`) : ['- No branches created.']),
+        ...(runResult.branches.length > 0
+            ? runResult.branches.map((branch) => `- Branch: ${branch}`)
+            : ['- No branches created.']),
         ...(runResult.pullRequestUrls.length > 0
-            ? runResult.pullRequestUrls.map(url => `- Pull Request: ${url}`)
+            ? runResult.pullRequestUrls.map((url) => `- Pull Request: ${url}`)
             : ['- No pull requests created.']),
         '',
         '## Findings',
         '',
-        ...scanResult.vulnerabilities.map(vulnerability =>
-            `- ${vulnerability.severity.toUpperCase()} ${vulnerability.id} ${vulnerability.packageName}@${vulnerability.version} | ${vulnerability.title} | Fixes: ${vulnerability.fixedIn.join(', ') || 'manual'}`
+        ...scanResult.vulnerabilities.map(
+            (vulnerability) =>
+                `- ${vulnerability.severity.toUpperCase()} ${vulnerability.id} ${vulnerability.packageName}@${vulnerability.version} | ${vulnerability.title} | Fixes: ${vulnerability.fixedIn.join(', ') || 'manual'}`
         ),
         '',
         '## Warnings',
         '',
-        ...(runResult.warnings.length > 0 ? runResult.warnings.map(warning => `- ${warning}`) : ['- None'])
+        ...(runResult.warnings.length > 0
+            ? runResult.warnings.map((warning) => `- ${warning}`)
+            : ['- None']),
     ].join('\n');
 
     fs.writeFileSync(reportPath, content, 'utf-8');

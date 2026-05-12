@@ -287,3 +287,56 @@ export interface PolicyDecision {
     approvalRequired: boolean;
     approvalSatisfied: boolean;
 }
+
+export interface BaselineFinding {
+    fingerprint: string;
+    id: string;
+    title: string;
+    severity: Severity;
+    packageName: string;
+    version: string;
+    fixedIn: string[];
+    ecosystem?: Ecosystem;
+    targetHost?: string;
+    targetPort?: number;
+    service?: string;
+}
+
+export interface WardenBaseline {
+    schemaVersion: 1;
+    generatedAt: string;
+    scanTimestamp: string;
+    scanner?: ScannerType;
+    scanMode?: ScanMode;
+    projectPath?: string;
+    summary: ScanSummary;
+    riskScore: number;
+    findings: BaselineFinding[];
+}
+
+export interface BaselineFindingDelta {
+    fingerprint: string;
+    baseline?: BaselineFinding;
+    current?: BaselineFinding;
+    severityChanged?: {
+        from: Severity;
+        to: Severity;
+    };
+}
+
+export interface BaselineComparison {
+    generatedAt: string;
+    baselineRiskScore: number;
+    currentRiskScore: number;
+    riskScoreDelta: number;
+    newFindings: BaselineFindingDelta[];
+    resolvedFindings: BaselineFindingDelta[];
+    worsenedFindings: BaselineFindingDelta[];
+    unchangedCount: number;
+    summary: {
+        new: number;
+        resolved: number;
+        worsened: number;
+        unchanged: number;
+    };
+}

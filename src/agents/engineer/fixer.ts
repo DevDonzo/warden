@@ -152,7 +152,7 @@ export class NpmFixer implements IFixer {
             branchName = validator.sanitizeBranchName(packageName, branchPrefix);
             logger.info(`Sanitized branch name: ${branchName}`);
         } else if (branchValidation.warnings.length > 0) {
-            branchValidation.warnings.forEach(w => logger.warn(w));
+            branchValidation.warnings.forEach((w) => logger.warn(w));
         }
 
         try {
@@ -184,7 +184,7 @@ export class NpmFixer implements IFixer {
             if (packageJson.dependencies?.[packageName] !== undefined) {
                 logger.info(
                     `Updating dependencies: ${packageName} ` +
-                    `${packageJson.dependencies[packageName]} → ${targetVersion}`
+                        `${packageJson.dependencies[packageName]} → ${targetVersion}`
                 );
                 packageJson.dependencies[packageName] = this.getDependencySpec(
                     packageJson.dependencies[packageName],
@@ -196,7 +196,7 @@ export class NpmFixer implements IFixer {
             if (packageJson.devDependencies?.[packageName] !== undefined) {
                 logger.info(
                     `Updating devDependencies: ${packageName} ` +
-                    `${packageJson.devDependencies[packageName]} → ${targetVersion}`
+                        `${packageJson.devDependencies[packageName]} → ${targetVersion}`
                 );
                 packageJson.devDependencies[packageName] = this.getDependencySpec(
                     packageJson.devDependencies[packageName],
@@ -208,7 +208,7 @@ export class NpmFixer implements IFixer {
             if (!updated) {
                 logger.error(
                     `Package "${packageName}" not found in dependencies or devDependencies. ` +
-                    'This may be a transitive dependency.'
+                        'This may be a transitive dependency.'
                 );
                 return false;
             }
@@ -234,7 +234,11 @@ export class NpmFixer implements IFixer {
                 } catch {
                     logger.error('Verification failed! Restoring modified files...');
                     this.restoreFileSnapshot(packageJsonPath, originalPackageJson, true);
-                    this.restoreFileSnapshot(packageLockPath, originalPackageLock, packageLockExisted);
+                    this.restoreFileSnapshot(
+                        packageLockPath,
+                        originalPackageLock,
+                        packageLockExisted
+                    );
                     return false;
                 }
             } else {
@@ -247,7 +251,6 @@ export class NpmFixer implements IFixer {
 
             logger.success(`Fix committed on branch "${branchName}"`);
             return true;
-
         } catch (error: any) {
             logger.error('NpmFixer encountered an error:', error);
             return false;
@@ -269,13 +272,18 @@ export class PipFixer implements IFixer {
             return false;
         }
 
-        const requirementsPath = path.resolve(process.cwd(), instruction.manifestPath || 'requirements.txt');
+        const requirementsPath = path.resolve(
+            process.cwd(),
+            instruction.manifestPath || 'requirements.txt'
+        );
         if (!fs.existsSync(requirementsPath)) {
             return false;
         }
 
         const content = fs.readFileSync(requirementsPath, 'utf-8');
-        return content.split('\n').some(line => line.trim().startsWith(`${instruction.packageName}==`));
+        return content
+            .split('\n')
+            .some((line) => line.trim().startsWith(`${instruction.packageName}==`));
     }
 
     async applyFix(
@@ -283,7 +291,10 @@ export class PipFixer implements IFixer {
         vulnerabilityId: string,
         branchPrefix: string = DEFAULT_BRANCH_PREFIX
     ): Promise<boolean> {
-        const requirementsPath = path.resolve(process.cwd(), instruction.manifestPath || 'requirements.txt');
+        const requirementsPath = path.resolve(
+            process.cwd(),
+            instruction.manifestPath || 'requirements.txt'
+        );
         let branchName = `${branchPrefix}-${instruction.packageName}`;
         const branchValidation = validator.validateBranchName(branchName);
 
@@ -308,7 +319,7 @@ export class PipFixer implements IFixer {
             const originalContent = fs.readFileSync(requirementsPath, 'utf-8');
             const updatedContent = originalContent
                 .split('\n')
-                .map(line => {
+                .map((line) => {
                     const trimmed = line.trim();
                     if (!trimmed.startsWith(`${instruction.packageName}==`)) {
                         return line;

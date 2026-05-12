@@ -22,7 +22,7 @@ export function loadRules(): WardenRules {
     const content = fs.readFileSync(RULES_FILE, 'utf-8');
     logger.info('Rules of Engagement Loaded.');
 
-    const directives = content.split('\n').filter(line => line.trim().length > 0);
+    const directives = content.split('\n').filter((line) => line.trim().length > 0);
 
     return { content, directives };
 }

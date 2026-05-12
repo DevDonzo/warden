@@ -1,10 +1,7 @@
 import { Severity, Vulnerability } from '../types';
 import { SEVERITY_PRIORITY } from '../constants';
 
-export function isSeverityAtLeast(
-    severity: Severity,
-    minimumSeverity: Severity
-): boolean {
+export function isSeverityAtLeast(severity: Severity, minimumSeverity: Severity): boolean {
     return SEVERITY_PRIORITY[severity] >= SEVERITY_PRIORITY[minimumSeverity];
 }
 
@@ -18,7 +15,7 @@ export function selectVulnerabilitiesForFix(
     }
 
     return [...vulnerabilities]
-        .filter(vulnerability => isSeverityAtLeast(vulnerability.severity, minimumSeverity))
+        .filter((vulnerability) => isSeverityAtLeast(vulnerability.severity, minimumSeverity))
         .sort((left, right) => {
             const severityDelta =
                 SEVERITY_PRIORITY[right.severity] - SEVERITY_PRIORITY[left.severity];

@@ -103,7 +103,8 @@ export class EngineerAgent {
                           packageName: vuln.packageName,
                           currentVersion: vuln.version,
                           targetVersion,
-                          manifestPath: vuln.ecosystem === 'python' ? 'requirements.txt' : 'package.json'
+                          manifestPath:
+                              vuln.ecosystem === 'python' ? 'requirements.txt' : 'package.json',
                       }
                     : undefined;
 
@@ -218,7 +219,7 @@ export class EngineerAgent {
         // ── Structured path (preferred) ────────────────────────────────────
         if (diagnosis.fixInstruction) {
             const { fixInstruction } = diagnosis;
-            const fixer = this.fixers.find(candidate => candidate.canFix(fixInstruction));
+            const fixer = this.fixers.find((candidate) => candidate.canFix(fixInstruction));
 
             if (!fixer) {
                 logger.error(
@@ -228,11 +229,7 @@ export class EngineerAgent {
                 return false;
             }
 
-            return fixer.applyFix(
-                fixInstruction,
-                diagnosis.vulnerabilityId,
-                DEFAULT_BRANCH_PREFIX
-            );
+            return fixer.applyFix(fixInstruction, diagnosis.vulnerabilityId, DEFAULT_BRANCH_PREFIX);
         }
 
         // ── Legacy regex fallback ──────────────────────────────────────────
@@ -254,7 +251,7 @@ export class EngineerAgent {
             packageName,
             currentVersion,
             targetVersion: newVersion,
-            manifestPath: 'package.json'
+            manifestPath: 'package.json',
         };
         const fixer = this.fixers[0];
 

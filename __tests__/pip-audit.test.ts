@@ -13,11 +13,11 @@ describe('PipAuditScanner', () => {
                             id: 'PYSEC-2021-66',
                             description: 'High severity template injection issue',
                             aliases: ['CVE-2020-28493'],
-                            fix_versions: ['2.11.3']
-                        }
-                    ]
-                }
-            ]
+                            fix_versions: ['2.11.3'],
+                        },
+                    ],
+                },
+            ],
         });
 
         const result = scanner.parseAuditOutput(output);

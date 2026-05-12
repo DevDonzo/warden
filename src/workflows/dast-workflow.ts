@@ -15,7 +15,7 @@ import {
     ScanResult,
     Vulnerability,
     WardenOptions,
-    WardenRunResult
+    WardenRunResult,
 } from '../types';
 import { NmapScanner } from '../agents/watchman/nmap';
 import { MetasploitScanner } from '../agents/watchman/metasploit';
@@ -52,7 +52,7 @@ export class DastWorkflow implements IWorkflow {
             branches: [],
             pullRequestUrls: [],
             advisoryPath: undefined,
-            warnings: []
+            warnings: [],
         };
 
         const configManager = getConfig();
@@ -65,7 +65,7 @@ export class DastWorkflow implements IWorkflow {
 
         const target: DastTarget | null = options.dastTarget
             ? configManager.findDastTarget(options.dastTarget)
-            : dastConfig.targets.find(candidate => candidate.authorized) || null;
+            : dastConfig.targets.find((candidate) => candidate.authorized) || null;
 
         if (!target) {
             logger.error(
@@ -89,7 +89,9 @@ export class DastWorkflow implements IWorkflow {
         }
 
         result.scanResult = scanResult;
-        result.selectedVulnerabilityIds = scanResult.vulnerabilities.map(vulnerability => vulnerability.id);
+        result.selectedVulnerabilityIds = scanResult.vulnerabilities.map(
+            (vulnerability) => vulnerability.id
+        );
         result.attemptedFixes = scanResult.summary.total;
 
         logger.info('');
@@ -152,7 +154,7 @@ export class DastWorkflow implements IWorkflow {
 
         const vulnerabilities: Vulnerability[] = [
             ...(nmapResults?.vulnerabilities ?? []),
-            ...(metasploitResults?.vulnerabilities ?? [])
+            ...(metasploitResults?.vulnerabilities ?? []),
         ];
 
         return {
@@ -160,10 +162,16 @@ export class DastWorkflow implements IWorkflow {
             vulnerabilities,
             summary: {
                 total: vulnerabilities.length,
-                critical: vulnerabilities.filter(vulnerability => vulnerability.severity === 'critical').length,
-                high: vulnerabilities.filter(vulnerability => vulnerability.severity === 'high').length,
-                medium: vulnerabilities.filter(vulnerability => vulnerability.severity === 'medium').length,
-                low: vulnerabilities.filter(vulnerability => vulnerability.severity === 'low').length
+                critical: vulnerabilities.filter(
+                    (vulnerability) => vulnerability.severity === 'critical'
+                ).length,
+                high: vulnerabilities.filter((vulnerability) => vulnerability.severity === 'high')
+                    .length,
+                medium: vulnerabilities.filter(
+                    (vulnerability) => vulnerability.severity === 'medium'
+                ).length,
+                low: vulnerabilities.filter((vulnerability) => vulnerability.severity === 'low')
+                    .length,
             },
             scanner: 'nmap',
             projectPath: target.url,
@@ -172,8 +180,8 @@ export class DastWorkflow implements IWorkflow {
                 target: target.url,
                 scanType: 'dast',
                 nmapEnabled: nmapResults !== null,
-                metasploitEnabled: metasploitResults !== null
-            }
+                metasploitEnabled: metasploitResults !== null,
+            },
         };
     }
 
@@ -187,7 +195,7 @@ export class DastWorkflow implements IWorkflow {
                 branches: [],
                 pullRequestUrls: [],
                 advisoryPath: undefined,
-                warnings: []
+                warnings: [],
             };
         }
 
@@ -201,7 +209,7 @@ export class DastWorkflow implements IWorkflow {
                 branches: [],
                 pullRequestUrls: [],
                 advisoryPath: undefined,
-                warnings: []
+                warnings: [],
             };
         }
 
@@ -209,7 +217,9 @@ export class DastWorkflow implements IWorkflow {
         const warnings: string[] = [];
 
         if (await git.hasUncommittedChanges()) {
-            warnings.push('Skipped DAST PR creation because the repository has uncommitted changes.');
+            warnings.push(
+                'Skipped DAST PR creation because the repository has uncommitted changes.'
+            );
             const advisoryPath = path.resolve(process.cwd(), SECURITY_ADVISORY_FILE);
             fs.writeFileSync(advisoryPath, advisory, { encoding: 'utf-8' });
             logger.success(`Security advisory written: ${advisoryPath}`);
@@ -217,7 +227,7 @@ export class DastWorkflow implements IWorkflow {
                 branches: [],
                 pullRequestUrls: [],
                 advisoryPath,
-                warnings
+                warnings,
             };
         }
 
@@ -231,7 +241,7 @@ export class DastWorkflow implements IWorkflow {
                 branches: [],
                 pullRequestUrls: [],
                 advisoryPath,
-                warnings
+                warnings,
             };
         }
 
@@ -252,7 +262,7 @@ export class DastWorkflow implements IWorkflow {
                 branches: [branchName],
                 pullRequestUrls: [],
                 advisoryPath,
-                warnings
+                warnings,
             };
         }
 
@@ -260,7 +270,7 @@ export class DastWorkflow implements IWorkflow {
             branch: branchName,
             title: '[SECURITY] DAST Infrastructure Security Advisory',
             body: advisory,
-            labels: ['security', 'dast', 'infrastructure', 'requires-action']
+            labels: ['security', 'dast', 'infrastructure', 'requires-action'],
         });
 
         logger.success(`Advisory Pull Request created: ${prUrl}`);
@@ -269,7 +279,7 @@ export class DastWorkflow implements IWorkflow {
             branches: [branchName],
             pullRequestUrls: [prUrl],
             advisoryPath,
-            warnings
+            warnings,
         };
     }
 
@@ -290,14 +300,14 @@ export class DastWorkflow implements IWorkflow {
             `- **Low**: ${scanResult.summary.low}`,
             '',
             '## Findings',
-            ''
+            '',
         ];
 
         const bySeverity: Record<string, Vulnerability[]> = {
             critical: [],
             high: [],
             medium: [],
-            low: []
+            low: [],
         };
 
         for (const vulnerability of scanResult.vulnerabilities) {

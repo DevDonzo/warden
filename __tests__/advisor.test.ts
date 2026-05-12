@@ -13,7 +13,7 @@ const scanResult: ScanResult = {
             version: '1.0.0',
             fixedIn: ['1.0.1'],
             description: 'critical',
-            cvssScore: 9.8
+            cvssScore: 9.8,
         },
         {
             id: 'V2',
@@ -23,16 +23,16 @@ const scanResult: ScanResult = {
             version: '2.0.0',
             fixedIn: [],
             description: 'manual',
-            exploitAvailable: true
-        }
+            exploitAvailable: true,
+        },
     ],
     summary: {
         total: 2,
         critical: 1,
         high: 1,
         medium: 0,
-        low: 0
-    }
+        low: 0,
+    },
 };
 
 describe('advisor', () => {
@@ -40,7 +40,7 @@ describe('advisor', () => {
         const plan = buildRemediationPlan(scanResult, {
             appliedFixes: 0,
             attemptedFixes: 1,
-            warnings: ['GITHUB_TOKEN is not set']
+            warnings: ['GITHUB_TOKEN is not set'],
         });
 
         expect(plan.riskScore).toBeGreaterThan(0);
@@ -48,11 +48,21 @@ describe('advisor', () => {
         expect(plan.autoFixableCount).toBe(1);
         expect(plan.manualCount).toBe(1);
         expect(plan.immediateActions.length).toBeGreaterThan(0);
-        expect(plan.strategicImprovements.some(item => item.includes('GitHub credentials'))).toBe(true);
+        expect(plan.strategicImprovements.some((item) => item.includes('GitHub credentials'))).toBe(
+            true
+        );
     });
 
     it('creates a history entry from a run result', () => {
-        const runResult: Pick<WardenRunResult, 'mode' | 'targetPath' | 'repository' | 'appliedFixes' | 'attemptedFixes' | 'remediationPlan'> = {
+        const runResult: Pick<
+            WardenRunResult,
+            | 'mode'
+            | 'targetPath'
+            | 'repository'
+            | 'appliedFixes'
+            | 'attemptedFixes'
+            | 'remediationPlan'
+        > = {
             mode: 'sast',
             targetPath: '/tmp/project',
             repository: 'owner/repo',
@@ -61,8 +71,8 @@ describe('advisor', () => {
             remediationPlan: buildRemediationPlan(scanResult, {
                 appliedFixes: 1,
                 attemptedFixes: 1,
-                warnings: []
-            })
+                warnings: [],
+            }),
         };
 
         const entry = createHistoryEntry(scanResult, runResult);

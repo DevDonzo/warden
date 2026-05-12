@@ -25,7 +25,9 @@ export class PipAuditScanner {
 
         const requirementsPath = path.resolve(process.cwd(), 'requirements.txt');
         if (!fs.existsSync(requirementsPath)) {
-            throw new Error('requirements.txt not found. pip-audit support currently requires requirements.txt');
+            throw new Error(
+                'requirements.txt not found. pip-audit support currently requires requirements.txt'
+            );
         }
 
         try {
@@ -81,24 +83,28 @@ export class PipAuditScanner {
                     fixedIn: fixVersions,
                     description: vuln.description || `Known vulnerability in ${dependency.name}`,
                     references: aliases,
-                    ecosystem: 'python'
+                    ecosystem: 'python',
                 });
             }
         }
 
         const summary = {
             total: vulnerabilities.length,
-            critical: vulnerabilities.filter(vulnerability => vulnerability.severity === 'critical').length,
-            high: vulnerabilities.filter(vulnerability => vulnerability.severity === 'high').length,
-            medium: vulnerabilities.filter(vulnerability => vulnerability.severity === 'medium').length,
-            low: vulnerabilities.filter(vulnerability => vulnerability.severity === 'low').length
+            critical: vulnerabilities.filter(
+                (vulnerability) => vulnerability.severity === 'critical'
+            ).length,
+            high: vulnerabilities.filter((vulnerability) => vulnerability.severity === 'high')
+                .length,
+            medium: vulnerabilities.filter((vulnerability) => vulnerability.severity === 'medium')
+                .length,
+            low: vulnerabilities.filter((vulnerability) => vulnerability.severity === 'low').length,
         };
 
         return {
             timestamp: new Date().toISOString(),
             vulnerabilities,
             summary,
-            scanner: 'pip-audit'
+            scanner: 'pip-audit',
         };
     }
 

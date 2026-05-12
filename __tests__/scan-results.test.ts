@@ -10,7 +10,7 @@ const vulnerabilities: Vulnerability[] = [
         version: '1.0.0',
         fixedIn: ['1.0.1'],
         description: 'low',
-        cvssScore: 2
+        cvssScore: 2,
     },
     {
         id: 'high-1',
@@ -20,7 +20,7 @@ const vulnerabilities: Vulnerability[] = [
         version: '1.0.0',
         fixedIn: ['1.1.0'],
         description: 'high',
-        cvssScore: 7.5
+        cvssScore: 7.5,
     },
     {
         id: 'critical-1',
@@ -30,7 +30,7 @@ const vulnerabilities: Vulnerability[] = [
         version: '1.0.0',
         fixedIn: ['2.0.0'],
         description: 'critical',
-        cvssScore: 9.8
+        cvssScore: 9.8,
     },
     {
         id: 'high-2',
@@ -40,8 +40,8 @@ const vulnerabilities: Vulnerability[] = [
         version: '1.0.0',
         fixedIn: ['1.2.0'],
         description: 'high-2',
-        cvssScore: 8.4
-    }
+        cvssScore: 8.4,
+    },
 ];
 
 describe('scan-results helpers', () => {
@@ -56,9 +56,9 @@ describe('scan-results helpers', () => {
     describe('selectVulnerabilitiesForFix', () => {
         it('filters out lower severities and respects the fix limit', () => {
             const selected = selectVulnerabilitiesForFix(vulnerabilities, 'high', 2);
-            expect(selected.map(vulnerability => vulnerability.id)).toEqual([
+            expect(selected.map((vulnerability) => vulnerability.id)).toEqual([
                 'critical-1',
-                'high-2'
+                'high-2',
             ]);
         });
 

@@ -17,7 +17,12 @@ import { PipAuditScanner } from '../agents/watchman/pip-audit';
 import { ProgressReporter } from '../utils/progress';
 import { logger } from '../utils/logger';
 import { getConfig } from '../utils/config';
-import { DEFAULT_BRANCH_PREFIX, SCAN_RESULTS_DIR, SCAN_RESULTS_FILE, WORKSPACES_DIR } from '../constants';
+import {
+    DEFAULT_BRANCH_PREFIX,
+    SCAN_RESULTS_DIR,
+    SCAN_RESULTS_FILE,
+    WORKSPACES_DIR,
+} from '../constants';
 import { selectVulnerabilitiesForFix } from '../utils/scan-results';
 import { validator } from '../utils/validator';
 import { buildRemediationPlan } from '../utils/advisor';
@@ -25,7 +30,12 @@ import { evaluatePolicy, writeApprovalRequest } from '../utils/policy';
 
 type SastFixSummary = Pick<
     WardenRunResult,
-    'selectedVulnerabilityIds' | 'attemptedFixes' | 'appliedFixes' | 'branches' | 'pullRequestUrls' | 'warnings'
+    | 'selectedVulnerabilityIds'
+    | 'attemptedFixes'
+    | 'appliedFixes'
+    | 'branches'
+    | 'pullRequestUrls'
+    | 'warnings'
 >;
 
 export class SastWorkflow implements IWorkflow {
@@ -50,7 +60,7 @@ export class SastWorkflow implements IWorkflow {
             branches: [],
             pullRequestUrls: [],
             advisoryPath: undefined,
-            warnings: []
+            warnings: [],
         };
 
         try {
@@ -198,7 +208,10 @@ export class SastWorkflow implements IWorkflow {
         }
     }
 
-    private async orchestrateFix(scanResult: ScanResult, options: WardenOptions): Promise<SastFixSummary> {
+    private async orchestrateFix(
+        scanResult: ScanResult,
+        options: WardenOptions
+    ): Promise<SastFixSummary> {
         const selected = selectVulnerabilitiesForFix(
             scanResult.vulnerabilities,
             options.minSeverity as Severity,
@@ -206,14 +219,16 @@ export class SastWorkflow implements IWorkflow {
         );
 
         if (selected.length === 0) {
-            logger.success(`No vulnerabilities met the minimum severity threshold (${options.minSeverity}).`);
+            logger.success(
+                `No vulnerabilities met the minimum severity threshold (${options.minSeverity}).`
+            );
             return {
                 selectedVulnerabilityIds: [],
                 attemptedFixes: 0,
                 appliedFixes: 0,
                 branches: [],
                 pullRequestUrls: [],
-                warnings: []
+                warnings: [],
             };
         }
 
@@ -226,7 +241,7 @@ export class SastWorkflow implements IWorkflow {
             buildRemediationPlan(scanResult, {
                 appliedFixes: 0,
                 attemptedFixes: selected.length,
-                warnings: []
+                warnings: [],
             }),
             options,
             getConfig().getConfig()
@@ -238,18 +253,20 @@ export class SastWorkflow implements IWorkflow {
                 buildRemediationPlan(scanResult, {
                     appliedFixes: 0,
                     attemptedFixes: selected.length,
-                    warnings: policyDecision.reasons
+                    warnings: policyDecision.reasons,
                 }),
                 policyDecision
             );
-            logger.warn(`Policy blocked automated fixes. Approval request written to ${approvalRequest}`);
+            logger.warn(
+                `Policy blocked automated fixes. Approval request written to ${approvalRequest}`
+            );
             return {
-                selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+                selectedVulnerabilityIds: selected.map((vulnerability) => vulnerability.id),
                 attemptedFixes: selected.length,
                 appliedFixes: 0,
                 branches: [],
                 pullRequestUrls: [],
-                warnings: policyDecision.reasons
+                warnings: policyDecision.reasons,
             };
         }
 
@@ -269,18 +286,18 @@ export class SastWorkflow implements IWorkflow {
             diagnoses.map((diagnosis: Diagnosis) => [diagnosis.vulnerabilityId, diagnosis])
         );
         const actionableDiagnoses = selected
-            .map(vulnerability => diagnosisById.get(vulnerability.id))
+            .map((vulnerability) => diagnosisById.get(vulnerability.id))
             .filter((diagnosis): diagnosis is Diagnosis => Boolean(diagnosis));
 
         if (actionableDiagnoses.length === 0) {
             logger.warn('No actionable diagnoses generated.');
             return {
-                selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+                selectedVulnerabilityIds: selected.map((vulnerability) => vulnerability.id),
                 attemptedFixes: 0,
                 appliedFixes: 0,
                 branches: [],
                 pullRequestUrls: [],
-                warnings: ['Selected vulnerabilities could not be mapped to actionable diagnoses.']
+                warnings: ['Selected vulnerabilities could not be mapped to actionable diagnoses.'],
             };
         }
 
@@ -294,12 +311,12 @@ export class SastWorkflow implements IWorkflow {
             });
 
             return {
-                selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+                selectedVulnerabilityIds: selected.map((vulnerability) => vulnerability.id),
                 attemptedFixes: actionableDiagnoses.length,
                 appliedFixes: 0,
                 branches: [],
                 pullRequestUrls: [],
-                warnings: []
+                warnings: [],
             };
         }
 
@@ -314,12 +331,17 @@ export class SastWorkflow implements IWorkflow {
 
             appliedFixes++;
             const branchName = diagnosis.fixInstruction
-                ? validator.sanitizeBranchName(diagnosis.fixInstruction.packageName, DEFAULT_BRANCH_PREFIX)
+                ? validator.sanitizeBranchName(
+                      diagnosis.fixInstruction.packageName,
+                      DEFAULT_BRANCH_PREFIX
+                  )
                 : `${DEFAULT_BRANCH_PREFIX}-${diagnosis.vulnerabilityId.toLowerCase()}`;
             branches.push(branchName);
 
             if (!process.env.GITHUB_TOKEN) {
-                warnings.push(`Skipped PR creation for ${diagnosis.vulnerabilityId}: GITHUB_TOKEN is not set.`);
+                warnings.push(
+                    `Skipped PR creation for ${diagnosis.vulnerabilityId}: GITHUB_TOKEN is not set.`
+                );
                 continue;
             }
 
@@ -332,7 +354,9 @@ export class SastWorkflow implements IWorkflow {
             }
 
             try {
-                const matched = selected.find(vulnerability => vulnerability.id === diagnosis.vulnerabilityId);
+                const matched = selected.find(
+                    (vulnerability) => vulnerability.id === diagnosis.vulnerabilityId
+                );
                 const prUrl = await diplomat.createPullRequest({
                     branch: branchName,
                     title: diplomat.generatePrTitle(branchName, diagnosis.vulnerabilityId),
@@ -341,7 +365,7 @@ export class SastWorkflow implements IWorkflow {
                         matched?.severity,
                         diagnosis.description
                     ),
-                    severity: matched?.severity
+                    severity: matched?.severity,
                 });
                 pullRequestUrls.push(prUrl);
                 logger.success(`Pull Request created: ${prUrl}`);
@@ -351,12 +375,12 @@ export class SastWorkflow implements IWorkflow {
         }
 
         return {
-            selectedVulnerabilityIds: selected.map(vulnerability => vulnerability.id),
+            selectedVulnerabilityIds: selected.map((vulnerability) => vulnerability.id),
             attemptedFixes: actionableDiagnoses.length,
             appliedFixes,
             branches,
             pullRequestUrls,
-            warnings
+            warnings,
         };
     }
 }

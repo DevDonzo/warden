@@ -12,6 +12,7 @@ export const DAST_OUTPUT_DIR = 'scan-results/dast';
 export const SCAN_RESULTS_FILE = 'scan-results.json';
 export const SCAN_RESULTS_PATH = `${SCAN_RESULTS_DIR}/${SCAN_RESULTS_FILE}`;
 export const WARDEN_CONFIG_FILE = '.wardenrc.json';
+export const WARDEN_BASELINE_FILE = '.warden-baseline.json';
 export const ENV_FILE = '.env';
 export const SECURITY_ADVISORY_FILE = 'SECURITY-ADVISORY.md';
 

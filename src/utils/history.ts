@@ -24,7 +24,7 @@ export class RunHistoryService {
         return {
             latest: entry,
             previous,
-            trend: this.computeTrend(previous, entry)
+            trend: this.computeTrend(previous, entry),
         };
     }
 
@@ -50,11 +50,17 @@ export class RunHistoryService {
             return 'first-run';
         }
 
-        if (latest.riskScore < previous.riskScore || latest.totalVulnerabilities < previous.totalVulnerabilities) {
+        if (
+            latest.riskScore < previous.riskScore ||
+            latest.totalVulnerabilities < previous.totalVulnerabilities
+        ) {
             return 'improving';
         }
 
-        if (latest.riskScore > previous.riskScore || latest.totalVulnerabilities > previous.totalVulnerabilities) {
+        if (
+            latest.riskScore > previous.riskScore ||
+            latest.totalVulnerabilities > previous.totalVulnerabilities
+        ) {
             return 'worsening';
         }
 

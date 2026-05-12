@@ -23,7 +23,7 @@ describe('MemoryService', () => {
                     packageName: 'lodash',
                     version: '1.0.0',
                     fixedIn: ['1.0.1'],
-                    description: 'desc'
+                    description: 'desc',
                 },
                 {
                     id: '2',
@@ -32,10 +32,10 @@ describe('MemoryService', () => {
                     packageName: 'lodash',
                     version: '1.0.0',
                     fixedIn: ['1.0.1'],
-                    description: 'desc'
-                }
+                    description: 'desc',
+                },
             ],
-            summary: { total: 2, critical: 1, high: 1, medium: 0, low: 0 }
+            summary: { total: 2, critical: 1, high: 1, medium: 0, low: 0 },
         };
 
         service.update('owner/repo', result);

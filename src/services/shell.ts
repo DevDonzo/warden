@@ -47,15 +47,12 @@ export class ShellCommandError extends Error {
  * Run a shell command and return stdout as a trimmed string.
  * Throws ShellCommandError on non-zero exit code.
  */
-export async function runCommand(
-    command: string,
-    options: ShellOptions = {}
-): Promise<string> {
+export async function runCommand(command: string, options: ShellOptions = {}): Promise<string> {
     const {
         timeout = DEFAULT_TIMEOUT_MS,
         cwd = process.cwd(),
         maxBuffer = 10 * 1024 * 1024,
-        log = true
+        log = true,
     } = options;
 
     if (log) {
@@ -87,7 +84,7 @@ export async function runCommandCapturingAll(
         timeout = DEFAULT_TIMEOUT_MS,
         cwd = process.cwd(),
         maxBuffer = 10 * 1024 * 1024,
-        log = true
+        log = true,
     } = options;
 
     if (log) {
@@ -101,7 +98,7 @@ export async function runCommandCapturingAll(
         return {
             stdout: error.stdout || '',
             stderr: error.stderr || error.message || '',
-            success: false
+            success: false,
         };
     }
 }
