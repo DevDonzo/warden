@@ -20,7 +20,7 @@ import { DastWorkflow } from './workflows/dast-workflow';
 import { WardenOptions, WardenRunResult } from './types';
 import { buildRemediationPlan, createHistoryEntry } from './utils/advisor';
 import { RunHistoryService } from './utils/history';
-import { writeHtmlReport, writeMarkdownReport } from './utils/reports';
+import { writeAgentRunRecord, writeHtmlReport, writeMarkdownReport } from './utils/reports';
 import { getConfig } from './utils/config';
 import { NotificationService } from './utils/notifications';
 import { evaluatePolicy, writeApprovalRequest } from './utils/policy';
@@ -77,6 +77,12 @@ export async function runWarden(options: WardenOptions): Promise<WardenRunResult
                 remediationPlan
             ),
             html: writeHtmlReport(workflowResult.scanResult),
+            agentRunRecord: writeAgentRunRecord(
+                workflowResult.scanResult,
+                workflowResult,
+                remediationPlan,
+                policyDecision
+            ),
         };
 
         if (policyDecision.approvalRequired && !policyDecision.approvalSatisfied) {

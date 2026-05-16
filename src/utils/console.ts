@@ -75,6 +75,7 @@ export interface WardenConsoleState {
         htmlReport: ArtifactStatus;
         approvalRequest: ArtifactStatus;
         advisory: ArtifactStatus;
+        agentRunRecord: ArtifactStatus;
         baseline: ArtifactStatus;
     };
 }
@@ -131,6 +132,11 @@ export function buildConsoleState(rootDir: string = process.cwd()): WardenConsol
         SCAN_RESULTS_DIR,
         'warden-approval-request.json'
     );
+    const agentRunRecordPath = path.join(
+        resolvedRoot,
+        SCAN_RESULTS_DIR,
+        'agent-run-record.json'
+    );
     const advisoryPath = path.join(resolvedRoot, SECURITY_ADVISORY_FILE);
     const baselinePath = path.join(resolvedRoot, WARDEN_BASELINE_FILE);
     const scanResult = readJsonFile<ScanResult>(scanResultsPath);
@@ -153,6 +159,7 @@ export function buildConsoleState(rootDir: string = process.cwd()): WardenConsol
             markdownReport: artifact(markdownReportPath),
             htmlReport: artifact(htmlReportPath),
             approvalRequest: artifact(approvalRequestPath),
+            agentRunRecord: artifact(agentRunRecordPath),
             advisory: artifact(advisoryPath),
             baseline: artifact(baselinePath),
         },

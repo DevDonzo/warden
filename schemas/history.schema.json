@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://warden.dev/schemas/history.schema.json",
+  "title": "Warden Run History",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "timestamp",
+      "mode",
+      "targetPath",
+      "totalVulnerabilities",
+      "critical",
+      "high",
+      "medium",
+      "low",
+      "appliedFixes",
+      "attemptedFixes",
+      "autoFixableCount",
+      "manualCount",
+      "riskScore"
+    ],
+    "additionalProperties": true,
+    "properties": {
+      "timestamp": { "type": "string" },
+      "mode": { "enum": ["sast", "dast"] },
+      "targetPath": { "type": "string" },
+      "repository": { "type": "string" },
+      "totalVulnerabilities": { "type": "number", "minimum": 0 },
+      "critical": { "type": "number", "minimum": 0 },
+      "high": { "type": "number", "minimum": 0 },
+      "medium": { "type": "number", "minimum": 0 },
+      "low": { "type": "number", "minimum": 0 },
+      "appliedFixes": { "type": "number", "minimum": 0 },
+      "attemptedFixes": { "type": "number", "minimum": 0 },
+      "autoFixableCount": { "type": "number", "minimum": 0 },
+      "manualCount": { "type": "number", "minimum": 0 },
+      "riskScore": { "type": "number", "minimum": 0, "maximum": 100 }
+    }
+  }
+}

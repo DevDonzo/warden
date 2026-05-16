@@ -170,6 +170,9 @@ program
                     if (result.reportPaths.approvalRequest) {
                         logger.info(`Approval Request: ${result.reportPaths.approvalRequest}`);
                     }
+                    if (result.reportPaths.agentRunRecord) {
+                        logger.info(`Agent Run Record: ${result.reportPaths.agentRunRecord}`);
+                    }
                 }
 
                 if (result.policyDecision) {

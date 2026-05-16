@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://warden.dev/schemas/memory.schema.json",
+  "title": "Warden Memory Store",
+  "type": "object",
+  "additionalProperties": {
+    "type": "object",
+    "required": ["runCount", "packages"],
+    "properties": {
+      "runCount": { "type": "number", "minimum": 0 },
+      "packages": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "required": ["occurrences", "lastSeverity"],
+          "properties": {
+            "occurrences": { "type": "number", "minimum": 0 },
+            "lastSeverity": { "enum": ["critical", "high", "medium", "low"] }
+          }
+        }
+      }
+    }
+  }
+}

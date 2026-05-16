@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://warden.dev/schemas/agent-run-record.schema.json",
+  "title": "Warden Agent Run Record",
+  "type": "object",
+  "required": [
+    "generatedAt",
+    "mode",
+    "targetPath",
+    "scanTimestamp",
+    "scanSummary",
+    "riskScore",
+    "posture",
+    "selectedVulnerabilityIds",
+    "attemptedFixes",
+    "appliedFixes",
+    "branches",
+    "pullRequestUrls",
+    "warnings",
+    "whyMatters",
+    "topFindings"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "mode": { "enum": ["sast", "dast"] },
+    "targetPath": { "type": "string" },
+    "repository": { "type": "string" },
+    "scanTimestamp": { "type": "string" },
+    "scanSummary": { "$ref": "#/$defs/scanSummary" },
+    "riskScore": { "type": "number", "minimum": 0, "maximum": 100 },
+    "posture": { "enum": ["critical", "elevated", "guarded", "stable"] },
+    "selectedVulnerabilityIds": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "attemptedFixes": { "type": "number", "minimum": 0 },
+    "appliedFixes": { "type": "number", "minimum": 0 },
+    "branches": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pullRequestUrls": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "advisoryPath": { "type": "string" },
+    "policyDecision": {
+      "type": "object",
+      "required": [
+        "shouldBlockFixes",
+        "shouldFailPipeline",
+        "approvalRequired",
+        "approvalSatisfied",
+        "reasons"
+      ],
+      "properties": {
+        "shouldBlockFixes": { "type": "boolean" },
+        "shouldFailPipeline": { "type": "boolean" },
+        "approvalRequired": { "type": "boolean" },
+        "approvalSatisfied": { "type": "boolean" },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "whyMatters": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "topFindings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/topFinding" }
+    }
+  },
+  "$defs": {
+    "scanSummary": {
+      "type": "object",
+      "required": ["total", "critical", "high", "medium", "low"],
+      "properties": {
+        "total": { "type": "number", "minimum": 0 },
+        "critical": { "type": "number", "minimum": 0 },
+        "high": { "type": "number", "minimum": 0 },
+        "medium": { "type": "number", "minimum": 0 },
+        "low": { "type": "number", "minimum": 0 }
+      }
+    },
+    "topFinding": {
+      "type": "object",
+      "required": ["id", "title", "severity", "packageName", "version"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "severity": { "enum": ["critical", "high", "medium", "low"] },
+        "packageName": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    }
+  }
+}

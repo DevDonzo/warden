@@ -1,13 +1,15 @@
 node_modules/
+video/node_modules/
 dist/
 build/
 coverage/
+scan-results/
 logs/
+video/out/
 *.log
+.npm-cache/
 .next/
 .vscode/
 .idea/
 *.swp
 *.swo
-__tests__/
-jest.config.js

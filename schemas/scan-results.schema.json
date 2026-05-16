@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://warden.dev/schemas/scan-results.schema.json",
+  "title": "Warden Scan Results",
+  "type": "object",
+  "required": ["timestamp", "vulnerabilities", "summary"],
+  "additionalProperties": true,
+  "properties": {
+    "timestamp": { "type": "string" },
+    "scanner": { "type": "string" },
+    "projectPath": { "type": "string" },
+    "scanMode": { "enum": ["sast", "dast"] },
+    "summary": {
+      "type": "object",
+      "required": ["total", "critical", "high", "medium", "low"],
+      "properties": {
+        "total": { "type": "number", "minimum": 0 },
+        "critical": { "type": "number", "minimum": 0 },
+        "high": { "type": "number", "minimum": 0 },
+        "medium": { "type": "number", "minimum": 0 },
+        "low": { "type": "number", "minimum": 0 }
+      }
+    },
+    "vulnerabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "severity", "packageName", "version", "fixedIn", "description"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "severity": { "enum": ["critical", "high", "medium", "low"] },
+          "packageName": { "type": "string" },
+          "version": { "type": "string" },
+          "fixedIn": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "description": { "type": "string" },
+          "cvssScore": { "type": "number" }
+        }
+      }
+    }
+  }
+}

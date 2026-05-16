@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,9 @@ jobs:
       
       - name: Run tests
         run: npm run test:ci
+
+      - name: Run smoke test
+        run: npm run smoke
 
       - name: Check CLI works
         run: |
@@ -62,6 +65,9 @@ jobs:
       
       - name: TypeScript check
         run: npm run build
+
+      - name: Format check
+        run: npm run format:check
 
       - name: Verify package can be packed
         run: npm pack --dry-run

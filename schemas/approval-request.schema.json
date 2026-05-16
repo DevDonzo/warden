@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://warden.dev/schemas/approval-request.schema.json",
+  "title": "Warden Approval Request",
+  "type": "object",
+  "required": ["generatedAt", "highestSeverity", "posture", "riskScore", "reasons", "nextStep"],
+  "additionalProperties": true,
+  "properties": {
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "highestSeverity": { "enum": ["critical", "high", "medium", "low", null] },
+    "posture": { "enum": ["critical", "elevated", "guarded", "stable"] },
+    "riskScore": { "type": "number", "minimum": 0, "maximum": 100 },
+    "reasons": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "nextStep": { "type": "string" }
+  }
+}

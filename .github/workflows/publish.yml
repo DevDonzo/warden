@@ -37,6 +37,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Run smoke test
+        run: npm run smoke
+
+      - name: Verify package can be packed
+        run: npm pack --dry-run
+
       - name: Publish to npm
         run: npm publish --access public --provenance
         env:

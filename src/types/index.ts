@@ -218,6 +218,7 @@ export interface WardenRunResult {
         markdown?: string;
         html?: string;
         approvalRequest?: string;
+        agentRunRecord?: string;
     };
     remediationPlan?: RemediationPlan;
     history?: RunHistorySnapshot;
@@ -265,6 +266,36 @@ export interface RunHistorySnapshot {
     latest: RunHistoryEntry;
     previous?: RunHistoryEntry;
     trend: 'improving' | 'worsening' | 'unchanged' | 'first-run';
+}
+
+export interface AgentRunRecord {
+    generatedAt: string;
+    mode: ScanMode;
+    targetPath: string;
+    repository?: string;
+    scanTimestamp: string;
+    scanSummary: ScanSummary;
+    riskScore: number;
+    posture: RemediationPlan['posture'];
+    selectedVulnerabilityIds: string[];
+    attemptedFixes: number;
+    appliedFixes: number;
+    branches: string[];
+    pullRequestUrls: string[];
+    advisoryPath?: string;
+    policyDecision?: Pick<
+        PolicyDecision,
+        'shouldBlockFixes' | 'shouldFailPipeline' | 'approvalRequired' | 'approvalSatisfied' | 'reasons'
+    >;
+    warnings: string[];
+    whyMatters: string[];
+    topFindings: Array<{
+        id: string;
+        title: string;
+        severity: Severity;
+        packageName: string;
+        version: string;
+    }>;
 }
 
 export interface MemoryHotspot {

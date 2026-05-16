@@ -1,20 +1,33 @@
+# Dependencies
 node_modules/
+video/node_modules/
+
+# Build and generated output
 dist/
-.env
-.DS_Store
+build/
 coverage/
 scan-results/
+logs/
+video/out/
+*.log
+*.tgz
+
+# Local caches
+.npm-cache/
+.next/
+
+# Local configuration and secrets
+.env
+.env*.local
 .wardenrc.json
 workspaces/
-logs/
-*.log
-.npm-cache/
+.vercel/
+.claude/settings.local.json
+warden/.claude/
 
-# Vercel
-.vercel
-
-# Build artifacts
-*.tgz
+# Package manager alternates
+pnpm-lock.yaml
+yarn.lock
 
 # IDE
 .vscode/
@@ -26,13 +39,7 @@ logs/
 *~
 
 # OS
-Thumbs.db
 .DS_Store
+Thumbs.db
 .AppleDouble
 .LSOverride
-
-# npm
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-.env*.local

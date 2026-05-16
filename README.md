@@ -1,34 +1,59 @@
 # Warden
 
-<p align="center">
-  <img src="./assets/warden-mark.svg" alt="Warden logo" width="180" />
-</p>
+**Warden is an auditable security remediation agent for teams that want agentic fixes without losing policy, review, and CI control.**
 
-<p align="center">
-  <strong>The operator-grade security agent for dependency risk, remediation, and CI policy.</strong>
-</p>
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![npm version](https://img.shields.io/npm/v/@devdonzo/warden?style=for-the-badge)](https://www.npmjs.com/package/@devdonzo/warden)
 [![CI](https://img.shields.io/github/actions/workflow/status/DevDonzo/warden/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/DevDonzo/warden/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
 
-> Autonomous security remediation with workflow memory, policy gates, and pull-request automation.
+Coding agents can fix vulnerabilities when you ask them to. Warden turns that ability into a repeatable security workflow:
 
-Warden is a security orchestration CLI for Node.js repositories, Python requirements-based projects, and infrastructure targets. It scans dependencies or network surfaces, prioritizes what matters, attempts safe automated fixes, produces operator-grade reports, remembers recurring hotspots, and can enforce CI policy when risk exceeds your threshold.
+- Scan a repository or infrastructure target.
+- Prioritize the findings that matter.
+- Apply safe fixes within configured limits.
+- Block risky remediation until approval.
+- Open reviewable security PRs.
+- Record what happened, why it happened, and what policy allowed or blocked.
+- Fail CI when risk crosses your gate.
 
-## What Warden Does Now
+The product is not "an LLM that fixes code." The product is the control plane around agentic remediation.
 
-- **SAST and DAST workflows**: Dependency scanning plus infrastructure advisory generation.
-- **Node and Python support**: `npm-audit`, `pip-audit`, and safer remediation flows for `package.json` and `requirements.txt`.
-- **Agentic remediation planning**: Every run now produces posture, risk score, immediate actions, and follow-up guidance.
-- **Safe auto-fix execution**: Fixes respect severity thresholds, fix limits, dirty-repo safeguards, and approval gates.
-- **PR automation**: Warden can create and push remediation branches and open GitHub PRs when credentials are configured.
-- **CI policy enforcement**: `--ci` mode can fail the pipeline on severity or posture thresholds.
-- **Committed security baselines**: `warden baseline` snapshots accepted risk and fails CI only when new or worsened findings cross your gate.
-- **Human approval for risky fixes**: High-risk remediation can require explicit approval via `--approval-token approved`.
-- **Workflow memory**: Warden tracks recurring vulnerable packages per repository so hotspots become visible over time.
-- **Machine-readable and human-readable output**: JSON run results, Markdown reports, HTML reports, approval request artifacts, and local run history.
+## Why Not Just Use Codex or Claude Code?
+
+Use Codex or Claude Code when you want an interactive coding partner.
+
+Use Warden when security work needs to happen the same way every time:
+
+- **Continuous**: runs in CI, release gates, and scheduled scans.
+- **Governed**: enforces severity gates, posture gates, fix limits, and approval requirements.
+- **Auditable**: writes durable artifacts instead of leaving the rationale trapped in chat history.
+- **Reviewable**: produces PR context for humans and future agents.
+- **Stateful**: tracks baselines, regressions, run history, and recurring vulnerable package memory.
+
+Warden answers the questions that matter after an agent touches a repo:
+
+```text
+What broke?
+What did we select for remediation?
+What changed?
+What was blocked?
+Why did the agent think this mattered?
+Which PRs or reports came out of the run?
+```
+
+## What It Does
+
+Warden currently supports:
+
+- SAST dependency scans for Node.js and Python projects.
+- DAST-style infrastructure advisory runs.
+- `npm-audit`, `pip-audit`, Snyk fallback paths, and mock scanner support for tests.
+- Dry-run remediation planning.
+- GitHub branch and PR automation when credentials are configured.
+- CI policy gates with deterministic exit codes.
+- Accepted-risk baselines for regression-only enforcement.
+- Local console and human-readable reports.
+- Machine-readable artifact contracts in `schemas/`.
 
 ## Install
 
@@ -36,7 +61,7 @@ Warden is a security orchestration CLI for Node.js repositories, Python requirem
 npm install -g @devdonzo/warden
 ```
 
-Or for local development:
+For local development:
 
 ```bash
 npm install
@@ -45,81 +70,56 @@ npm run build
 
 ## Quick Start
 
-Validate the environment:
+Validate your environment:
 
 ```bash
 warden validate
 ```
 
-Open the local Warden console:
-
-```bash
-warden
-# or
-warden console
-```
-
-Run a local dry-run dependency scan:
+Run a local dry-run scan:
 
 ```bash
 warden scan . --dry-run --scanner npm-audit --severity high --max-fixes 2
 ```
 
-Run against a Python `requirements.txt` project:
-
-```bash
-warden scan . --scanner pip-audit --severity high
-```
-
-Run in CI mode with policy gates:
+Run with CI policy gates:
 
 ```bash
 warden scan . --ci --json --scanner npm-audit --severity high
 ```
 
-Create a committed baseline after reviewing accepted risk:
+Create an accepted-risk baseline:
 
 ```bash
 warden baseline --create
 git add .warden-baseline.json
 ```
 
-Fail only when current scan results introduce new or worsened high-risk findings:
+Fail only on new or worsened high-risk findings:
 
 ```bash
 warden baseline --check --severity high
 ```
 
-Approve a risky remediation after human review:
+Open the local console:
 
 ```bash
-warden scan . --scanner npm-audit --approval-token approved
+warden console
 ```
 
-Run an infrastructure advisory scan:
-
-```bash
-warden dast https://your-api.example.com --dry-run
-```
-
-## Key Commands
+## Core Commands
 
 ```bash
 warden scan [repository-or-path]
-warden console
-warden ui
 warden dast <target>
-warden validate
-warden doctor
-warden status
 warden baseline --create
 warden baseline --check
+warden console
+warden validate
 warden bootstrap-ci
-warden config --show
-warden config --create
 ```
 
-## Important Flags
+Useful flags:
 
 ```bash
 --scanner <snyk|npm-audit|pip-audit|all>
@@ -129,158 +129,88 @@ warden config --create
 --json
 --ci
 --approval-token approved
---skip-validation
---verbose
 ```
 
 ## Output Artifacts
 
 Warden writes durable run artifacts into `scan-results/`:
 
-- `scan-results.json`: latest scanner output
-- `warden-report.md`: operator-focused Markdown report
-- `scan-results.html`: HTML report
-- `history.json`: longitudinal run history
-- `memory.json`: recurring vulnerable package memory
-- `warden-approval-request.json`: generated when policy blocks risky fixes pending approval
-- `.warden-baseline.json`: committed accepted-risk snapshot generated by `warden baseline --create`
+| Artifact | Purpose |
+|---|---|
+| `scan-results.json` | Normalized scanner output |
+| `warden-report.md` | Human-readable operator report |
+| `scan-results.html` | HTML report |
+| `agent-run-record.json` | Agent handoff record with findings, fixes, policy reasons, and why-it-matters context |
+| `warden-approval-request.json` | Written when policy blocks risky remediation |
+| `history.json` | Longitudinal run history |
+| `memory.json` | Recurring vulnerable package memory |
+| `.warden-baseline.json` | Committed accepted-risk baseline |
 
-## Example `.wardenrc.json`
+The JSON artifacts have schemas in `schemas/` so other agents, CI jobs, dashboards, and review tools can consume Warden output without scraping terminal logs.
+
+## The Agent Handoff Record
+
+`agent-run-record.json` is the artifact that makes Warden useful beyond a single chat session. It captures:
+
+- What broke: scan summary and top findings.
+- What changed: selected vulnerability IDs, attempted fixes, applied fixes.
+- What was produced: branches, PR URLs, reports, and advisories.
+- Why it matters: risk score, posture, and remediation summary.
+- Why it was allowed or blocked: policy decision and warnings.
+
+That lets another agent, a reviewer, or future you understand why a security change happened.
+
+## Configuration
+
+Example `.wardenrc.json`:
 
 ```json
 {
   "scanner": {
     "primary": "snyk",
-    "fallback": true,
-    "timeout": 300000,
-    "retries": 3
+    "fallback": true
   },
   "fixes": {
     "maxPerRun": 2,
-    "minSeverity": "high",
-    "autoMerge": false,
-    "branchPrefix": "warden/fix"
+    "minSeverity": "high"
   },
   "policy": {
     "failOnSeverity": "critical",
     "failOnPosture": "critical",
     "requireApprovalAboveSeverity": "high"
   },
-  "github": {
-    "assignees": [],
-    "labels": ["security", "automated"],
-    "reviewers": [],
-    "autoAssign": true
-  },
   "notifications": {
     "enabled": false
-  },
-  "logging": {
-    "level": "info",
-    "file": true,
-    "console": true
   }
 }
 ```
 
-## Environment Variables
+Environment variables:
 
 ```bash
-GITHUB_TOKEN=...     # required for PR creation and branch automation
-SNYK_TOKEN=...       # recommended when using the Snyk scanner
-GITHUB_ASSIGNEE=...  # optional default assignee for PRs
-GITHUB_OWNER=...     # optional fallback owner
-GITHUB_REPO=...      # optional fallback repo
+GITHUB_TOKEN=...  # enables branch push and PR creation
+SNYK_TOKEN=...    # recommended for Snyk scans
 ```
 
-## CI/CD
+## Release Confidence
 
-The repository already includes GitHub Actions workflows:
-
-- `.github/workflows/ci.yml`: build, test, and CLI smoke checks
-- `.github/workflows/publish.yml`: npm publish workflow
-
-Recommended CI usage inside your own repositories:
+Warden has a release gate that checks behavior, not just compilation:
 
 ```bash
-warden scan . --ci --json --scanner npm-audit --severity high
+npm run release:check
 ```
 
-That gives you:
+It builds the package, runs tests, executes a smoke test against mock scanner output, verifies the expected artifact bundle, and checks the npm package contents.
 
-- deterministic non-zero exit codes on policy failure
-- JSON output for downstream automation
-- approval artifacts when risky auto-remediation is blocked
+## Positioning
 
-For teams adopting Warden on an existing codebase, commit an initial baseline once the findings are reviewed, then gate only on regressions:
+Warden is for teams that want agentic security remediation but need operational guarantees:
 
-```bash
-warden scan . --json --scanner npm-audit --severity low
-warden baseline --check --severity high
+```text
+scan -> triage -> policy check -> fix safe issues -> open PR -> record rationale -> pass/fail CI
 ```
 
-To generate a starter workflow in another repository:
-
-```bash
-warden bootstrap-ci --create-config --scanner npm-audit --severity high
-```
-
-## Architecture
-
-| Component | Responsibility |
-|---|---|
-| `Watchman` | Scanner execution and findings normalization |
-| `Engineer` | Safe remediation planning and fix application |
-| `Diplomat` | Branch push and pull-request orchestration |
-| `SastWorkflow` | End-to-end dependency remediation flow |
-| `DastWorkflow` | Infrastructure findings and advisory PR flow |
-| `advisor` | Risk scoring, posture analysis, and immediate action planning |
-| `policy` | CI gates and approval enforcement |
-| `history` | Longitudinal run trend tracking |
-| `memory` | Recurring package hotspot tracking |
-
-## Testing
-
-```bash
-npm run build
-npm test
-npm run test:coverage
-```
-
-The suite now covers:
-
-- scanner parsing
-- remediation selection logic
-- policy decisions
-- fixture-backed SAST workflow integration
-- run history
-- recurring memory hotspots
-
-## Release Status
-
-Current package version: `1.6.0`
-
-This version introduces:
-
-- agentic run assessment and report generation
-- CI policy gates and approval requirements
-- fixture-backed workflow integration tests
-- recurring vulnerability hotspot memory
-- safer npm remediation and PR flow hardening
-- Python requirements scanning with `pip-audit`
-- GitHub Actions bootstrap generation with `warden bootstrap-ci`
-
-## Roadmap
-
-- multi-ecosystem remediation for Python, Rust, Go, Ruby, and PHP
-- GitHub Actions bootstrap generation for downstream repos
-- stronger human review UX than approval tokens alone
-- end-to-end git fixture repos for real remediation execution
-- shared remote memory and team dashboards
-
-## Contributing
-
-See [.github/CONTRIBUTING.md](./.github/CONTRIBUTING.md) for contribution guidance.
+That loop is the product.
 
 ## License
 

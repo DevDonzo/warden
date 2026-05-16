@@ -9,9 +9,11 @@
   "files": [
     "dist/",
     "assets/",
+    "schemas/",
     "README.md",
     "LICENSE",
-    "docs/CHANGELOG.md"
+    "docs/CHANGELOG.md",
+    "docs/WARDEN-VS-CODEX.md"
   ],
   "scripts": {
     "test": "jest",
@@ -28,7 +30,11 @@
     "setup": "ts-node src/cli.ts setup",
     "format": "prettier --write \"src/**/*.ts\" \"__tests__/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"__tests__/**/*.ts\"",
-    "clean": "rm -rf dist coverage logs *.log",
+    "clean": "rm -rf dist coverage logs scan-results .npm-cache *.log",
+    "clean:video": "rm -rf video/out",
+    "clean:all": "npm run clean && npm run clean:video",
+    "smoke": "node scripts/smoke-test.js",
+    "release:check": "npm run clean:all && npm run build && npm test && npm run smoke && npm pack --dry-run",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [

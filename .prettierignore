@@ -1,29 +1,27 @@
-# Ignore build artifacts
+# Build and generated output
 dist/
 build/
-node_modules/
-
-# Ignore generated files
 coverage/
-*.log
+scan-results/
 logs/
+video/out/
+*.log
 
-# Ignore configuration and lockfiles
-package-lock.json
+# Dependencies and package manager alternates
+node_modules/
+video/node_modules/
 pnpm-lock.yaml
 yarn.lock
 
-# Ignore IDE and OS files
+# Local configuration and caches
+.env
+.env*.local
+.npm-cache/
+.vercel/
+SPEC/
+website/
+
+# IDE and OS files
 .vscode/
 .idea/
 .DS_Store
-.env
-.env.example
-
-# Ignore git files
-.git/
-.gitignore
-
-# Ignore documentation generated files
-SPEC/
-website/
