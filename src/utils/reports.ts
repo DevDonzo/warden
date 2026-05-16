@@ -1,7 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { HtmlReportGenerator } from '../agents/watchman/html-report';
-import { AgentRunRecord, PolicyDecision, RemediationPlan, ScanResult, WardenRunResult } from '../types';
+import {
+    AgentRunRecord,
+    PolicyDecision,
+    RemediationPlan,
+    ScanResult,
+    WardenRunResult,
+} from '../types';
 import { SEVERITY_PRIORITY, SCAN_RESULTS_DIR } from '../constants';
 
 const AGENT_RUN_RECORD_FILE = 'agent-run-record.json';
@@ -89,17 +95,16 @@ export function writeAgentRunRecord(
     scanResult: ScanResult,
     runResult: Pick<
         WardenRunResult,
-        |
-            'mode' |
-            'targetPath' |
-            'repository' |
-            'selectedVulnerabilityIds' |
-            'attemptedFixes' |
-            'appliedFixes' |
-            'branches' |
-            'pullRequestUrls' |
-            'advisoryPath' |
-            'warnings'
+        | 'mode'
+        | 'targetPath'
+        | 'repository'
+        | 'selectedVulnerabilityIds'
+        | 'attemptedFixes'
+        | 'appliedFixes'
+        | 'branches'
+        | 'pullRequestUrls'
+        | 'advisoryPath'
+        | 'warnings'
     >,
     remediationPlan: RemediationPlan,
     policyDecision?: PolicyDecision

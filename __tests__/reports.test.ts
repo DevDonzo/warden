@@ -26,7 +26,9 @@ describe('Warden report outputs', () => {
             appliedFixes: 1,
             branches: ['warden/fix-lodash', 'warden/fix-axios'],
             pullRequestUrls: ['https://example.com/pr/1'],
-            warnings: ['Approval required before auto-remediation because highest severity is critical.'],
+            warnings: [
+                'Approval required before auto-remediation because highest severity is critical.',
+            ],
             advisoryPath: 'SECURITY-ADVISORY.md',
         } as any;
         const policyDecision: PolicyDecision = {
@@ -44,7 +46,12 @@ describe('Warden report outputs', () => {
         });
 
         process.chdir(tempDir);
-        const recordPath = writeAgentRunRecord(scanResult, runResult, remediationPlan, policyDecision);
+        const recordPath = writeAgentRunRecord(
+            scanResult,
+            runResult,
+            remediationPlan,
+            policyDecision
+        );
         const record = JSON.parse(fs.readFileSync(recordPath, 'utf-8'));
 
         expect(record.mode).toBe('sast');
@@ -58,4 +65,3 @@ describe('Warden report outputs', () => {
         fs.rmSync(tempDir, { recursive: true, force: true });
     });
 });
-

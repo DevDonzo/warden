@@ -285,7 +285,11 @@ export interface AgentRunRecord {
     advisoryPath?: string;
     policyDecision?: Pick<
         PolicyDecision,
-        'shouldBlockFixes' | 'shouldFailPipeline' | 'approvalRequired' | 'approvalSatisfied' | 'reasons'
+        | 'shouldBlockFixes'
+        | 'shouldFailPipeline'
+        | 'approvalRequired'
+        | 'approvalSatisfied'
+        | 'reasons'
     >;
     warnings: string[];
     whyMatters: string[];

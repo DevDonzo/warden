@@ -132,11 +132,7 @@ export function buildConsoleState(rootDir: string = process.cwd()): WardenConsol
         SCAN_RESULTS_DIR,
         'warden-approval-request.json'
     );
-    const agentRunRecordPath = path.join(
-        resolvedRoot,
-        SCAN_RESULTS_DIR,
-        'agent-run-record.json'
-    );
+    const agentRunRecordPath = path.join(resolvedRoot, SCAN_RESULTS_DIR, 'agent-run-record.json');
     const advisoryPath = path.join(resolvedRoot, SECURITY_ADVISORY_FILE);
     const baselinePath = path.join(resolvedRoot, WARDEN_BASELINE_FILE);
     const scanResult = readJsonFile<ScanResult>(scanResultsPath);
