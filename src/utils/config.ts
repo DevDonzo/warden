@@ -41,6 +41,10 @@ export interface WardenConfig {
         email?: {
             to: string[];
             from: string;
+            provider?: 'resend' | 'webhook';
+            apiKeyEnv?: string;
+            webhook?: string;
+            subjectPrefix?: string;
         };
     };
 

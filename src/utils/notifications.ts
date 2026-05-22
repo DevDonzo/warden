@@ -36,6 +36,14 @@ const SEVERITY_EMOJIS: Record<NotificationSeverity, string> = {
     success: '✅',
 };
 
+interface EmailMessage {
+    to: string[];
+    from: string;
+    subject: string;
+    text: string;
+    html: string;
+}
+
 export class NotificationService {
     private config: WardenConfig['notifications'];
 
@@ -167,15 +175,106 @@ export class NotificationService {
     }
 
     /**
-     * Send email notification (placeholder - requires email service)
+     * Send email notification through Resend or a generic email webhook.
      */
-    private async sendEmail(_payload: NotificationPayload): Promise<void> {
-        if (!this.config.email) {
+    private async sendEmail(payload: NotificationPayload): Promise<void> {
+        const emailConfig = this.config.email;
+        if (!emailConfig) {
             return;
         }
 
-        logger.warn('Email notifications not yet implemented');
-        // TODO: Implement email service integration (SendGrid, AWS SES, etc.)
+        const message = this.buildEmailMessage(payload);
+
+        if (emailConfig.webhook) {
+            await this.sendEmailWebhook(message, payload);
+            return;
+        }
+
+        const provider = emailConfig.provider || 'resend';
+        if (provider !== 'resend') {
+            logger.warn(`Unsupported email notification provider: ${provider}`);
+            return;
+        }
+
+        await this.sendResendEmail(message);
+    }
+
+    private async sendEmailWebhook(
+        message: EmailMessage,
+        payload: NotificationPayload
+    ): Promise<void> {
+        const webhook = this.config.email?.webhook;
+        if (!webhook) {
+            return;
+        }
+
+        const response = await fetch(webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ...message,
+                severity: payload.severity,
+                details: payload.details || {},
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Email webhook error: ${response.status} ${response.statusText}`);
+        }
+
+        logger.debug('Email webhook notification sent');
+    }
+
+    private async sendResendEmail(message: EmailMessage): Promise<void> {
+        const apiKeyEnv = this.config.email?.apiKeyEnv || 'RESEND_API_KEY';
+        const apiKey = process.env[apiKeyEnv];
+        if (!apiKey) {
+            logger.warn(`Email notifications skipped: ${apiKeyEnv} is not set`);
+            return;
+        }
+
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(message),
+        });
+
+        if (!response.ok) {
+            const body = await response.text();
+            throw new Error(`Resend email error: ${response.status} ${body}`);
+        }
+
+        logger.debug('Resend email notification sent');
+    }
+
+    private buildEmailMessage(payload: NotificationPayload): EmailMessage {
+        const emailConfig = this.config.email;
+        if (!emailConfig) {
+            throw new Error('Email config is required');
+        }
+
+        const emoji = this.getSeverityEmoji(payload.severity);
+        const prefix = emailConfig.subjectPrefix || 'Warden';
+        const subject = `[${prefix}] ${emoji} ${payload.title}`;
+        const fields = this.buildTextFields(payload.details);
+        const text = [payload.message, fields].filter(Boolean).join('\n\n');
+        const html = [
+            `<p>${this.escapeHtml(payload.message)}</p>`,
+            this.buildHtmlFields(payload.details),
+        ]
+            .filter(Boolean)
+            .join('');
+
+        return {
+            to: emailConfig.to,
+            from: emailConfig.from,
+            subject,
+            text,
+            html,
+        };
     }
 
     /**
@@ -221,6 +320,39 @@ export class NotificationService {
         }
 
         return fields;
+    }
+
+    private buildTextFields(details?: NotificationPayload['details']): string {
+        const fields = this.buildFields(details);
+        if (fields.length === 0) {
+            return '';
+        }
+        return fields.map((field) => `${field.name}: ${field.value}`).join('\n');
+    }
+
+    private buildHtmlFields(details?: NotificationPayload['details']): string {
+        const fields = this.buildFields(details);
+        if (fields.length === 0) {
+            return '';
+        }
+        const rows = fields
+            .map(
+                (field) =>
+                    `<tr><th align="left">${this.escapeHtml(field.name)}</th><td>${this.escapeHtml(
+                        field.value
+                    )}</td></tr>`
+            )
+            .join('');
+        return `<table>${rows}</table>`;
+    }
+
+    private escapeHtml(value: string): string {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     /**

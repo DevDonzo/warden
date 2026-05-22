@@ -29,6 +29,15 @@
         },
         "discord": {
             "webhook": "https://discord.com/api/webhooks/YOUR/WEBHOOK/URL"
+        },
+        "email": {
+            "to": [
+                "security@example.com"
+            ],
+            "from": "Warden <warden@example.com>",
+            "provider": "resend",
+            "apiKeyEnv": "RESEND_API_KEY",
+            "subjectPrefix": "Warden"
         }
     },
     "logging": {

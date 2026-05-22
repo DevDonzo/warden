@@ -180,7 +180,13 @@ Example `.wardenrc.json`:
     "requireApprovalAboveSeverity": "high"
   },
   "notifications": {
-    "enabled": false
+    "enabled": false,
+    "email": {
+      "to": ["security@example.com"],
+      "from": "Warden <warden@example.com>",
+      "provider": "resend",
+      "apiKeyEnv": "RESEND_API_KEY"
+    }
   }
 }
 ```
@@ -190,7 +196,12 @@ Environment variables:
 ```bash
 GITHUB_TOKEN=...  # enables branch push and PR creation
 SNYK_TOKEN=...    # recommended for Snyk scans
+RESEND_API_KEY=... # optional, enables email notifications
 ```
+
+Email notifications can also target a generic webhook by setting
+`notifications.email.webhook`; Warden posts a normalized email payload that can
+be routed through Zapier, Make, SES Lambda, or an internal notification service.
 
 ## Release Confidence
 
