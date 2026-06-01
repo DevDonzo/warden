@@ -13,6 +13,8 @@
     "README.md",
     "LICENSE",
     "docs/CHANGELOG.md",
+    "docs/EXAMPLE-CI.md",
+    "docs/OPEN-SOURCE-MAINTENANCE.md",
     "docs/WARDEN-VS-CODEX.md"
   ],
   "scripts": {
@@ -51,7 +53,9 @@
     "automated-fixes",
     "pull-requests",
     "ci-cd",
-    "security-tools"
+    "security-tools",
+    "agentic-ai",
+    "github-actions"
   ],
   "author": {
     "name": "DevDonzo",
@@ -62,7 +66,7 @@
     "type": "git",
     "url": "git+https://github.com/DevDonzo/warden.git"
   },
-  "homepage": "https://warden-cli.vercel.app",
+  "homepage": "https://warden.hamzaparacha.me",
   "bugs": {
     "url": "https://github.com/DevDonzo/warden/issues"
   },

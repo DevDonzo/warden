@@ -3,6 +3,7 @@
 **Warden is an auditable security remediation agent for teams that want agentic fixes without losing policy, review, and CI control.**
 
 [![npm version](https://img.shields.io/npm/v/@devdonzo/warden?style=for-the-badge)](https://www.npmjs.com/package/@devdonzo/warden)
+[![npm downloads](https://img.shields.io/npm/dm/@devdonzo/warden?style=for-the-badge)](https://www.npmjs.com/package/@devdonzo/warden)
 [![CI](https://img.shields.io/github/actions/workflow/status/DevDonzo/warden/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/DevDonzo/warden/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
 
@@ -17,6 +18,17 @@ Coding agents can fix vulnerabilities when you ask them to. Warden turns that ab
 - Fail CI when risk crosses your gate.
 
 The product is not "an LLM that fixes code." The product is the control plane around agentic remediation.
+
+## Open Source Status
+
+Warden is public, ISC-licensed, and distributed on npm as
+[`@devdonzo/warden`](https://www.npmjs.com/package/@devdonzo/warden).
+The repository includes CI, release packaging checks, contribution guidelines,
+issue templates, a security policy, machine-readable artifact schemas, and a
+copyable downstream GitHub Actions workflow for adopters.
+
+Current public usage signals are tracked in
+[`docs/OPEN-SOURCE-MAINTENANCE.md`](docs/OPEN-SOURCE-MAINTENANCE.md).
 
 ## Why Not Just Use Codex or Claude Code?
 
@@ -212,6 +224,16 @@ npm run release:check
 ```
 
 It builds the package, runs tests, executes a smoke test against mock scanner output, verifies the expected artifact bundle, and checks the npm package contents.
+
+## Example CI
+
+Warden can generate a downstream GitHub Actions workflow:
+
+```bash
+warden bootstrap-ci --scanner npm-audit --severity high
+```
+
+For a copyable workflow file, see [`docs/EXAMPLE-CI.md`](docs/EXAMPLE-CI.md).
 
 ## Positioning
 

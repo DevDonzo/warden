@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Resend-backed email delivery for scan, fix, and error notifications
   - Added generic email webhook delivery for Zapier, Make, SES Lambda, or internal routers
   - Added email notification tests and updated configuration examples
+- **Downstream CI Documentation**:
+  - Added a copyable GitHub Actions workflow for projects that want Warden scans on pull requests, main-branch pushes, schedules, and manual dispatch
+  - Added public open-source maintenance notes and packaged them in the npm tarball
 
 ## [1.7.0] - 2026-05-12
 
